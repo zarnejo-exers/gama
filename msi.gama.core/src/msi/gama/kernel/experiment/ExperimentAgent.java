@@ -222,9 +222,12 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		ownClock = new ExperimentClock(ownScope);
 		executer = new ActionExecuter(ownScope);
 		populationFactory = initializePopulationFactory();
+		
+		DEBUG.ADD_LOG("1 WRITING HERE!");	
+		
 		// Should not perform a whole reset as it shuts down UI outputs in comodels (see #2813)
 		if (s.getSpecies().getDescription().belongsToAMicroModel()) {
-			initialize();
+			initialize();			
 		} else {
 			reset();
 		}
@@ -235,6 +238,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	 */
 	private void initialize() {
 		// We initialize the population that will host the simulation
+		DEBUG.ADD_LOG("3 WRITING HERE!");
 		createSimulationPopulation();
 		// We initialize a new random number generator
 		if (random == null) {
@@ -272,6 +276,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	 * Reset.
 	 */
 	public void reset() {
+		DEBUG.ADD_LOG("2 WRITING HERE!");
 		ownClock.reset();
 		// We close any simulation that might be running
 		closeSimulations();
@@ -340,6 +345,8 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		closeSimulations();
 		GAMA.releaseScope(ownScope);
 		super.dispose();
+		DEBUG.ADD_LOG("WRITING 'closing simulation'");
+		DEBUG.SAVE_LOG();
 	}
 
 	/**
@@ -366,7 +373,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	}
 
 	@Override
-	public boolean init(final IScope scope) {
+	public boolean init(final IScope scope) {	 
 		scope.getGui().clearErrors(scope);
 		super.init(scope);
 		final IOutputManager outputs = getOutputManager();
@@ -424,6 +431,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 
 	@SuppressWarnings ("unchecked")
 	protected void createSimulationPopulation() {
+		DEBUG.ADD_LOG("4 WRITING HERE!");
 		final IModel model = getModel();
 		SimulationPopulation pop = (SimulationPopulation) this.getMicroPopulation(model);
 		if (pop == null) {
@@ -432,6 +440,8 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 			pop.initializeFor(ownScope);
 		}
 		microPopulations = new IPopulation[] { pop };
+		DEBUG.ADD_LOG("WRITING ACTIONS --"+model.getActions());
+		DEBUG.ADD_LOG("WRITING populations --"+pop.getSpecies());
 	}
 
 	@Override

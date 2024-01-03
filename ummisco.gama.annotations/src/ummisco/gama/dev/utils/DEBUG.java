@@ -14,9 +14,17 @@ import static java.lang.System.currentTimeMillis;
 import static ummisco.gama.dev.utils.FLAGS.ENABLE_DEBUG;
 import static ummisco.gama.dev.utils.FLAGS.ENABLE_LOGGING;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.lang.StackWalker.StackFrame;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -62,6 +70,15 @@ public class DEBUG {
 
 	/** The Constant stackWalker. */
 	static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+	
+	private static final List<String[]> DATA_LINES = new ArrayList<>();
+	
+	/** The first column. */
+	protected static boolean firstColumn = true;
+	
+	private static Writer outputStream = null;
+	
+	private static String fileName = null;
 
 	/**
 	 * Uses a custom security manager to get the caller class name. Use of reflection would be faster, but more prone to
@@ -374,6 +391,74 @@ public class DEBUG {
 			return null;
 		});
 		DEBUG.LINE();
+	}
+	
+	public static void ADD_LOG(final Object string) {
+		if(ENABLE_LOGGING) {
+			DEBUG.DATA_LINES.add(new String[] {STRINGS.TO_STRING(string)});
+		}
+	}
+	
+	public static void SAVE_LOG() {
+		fileName = "/Users/admin/Desktop/test.csv";
+		try {
+			for(String[] s : DEBUG.DATA_LINES) {
+				DEBUG.writeRecord(s, true);
+			}
+			DEBUG.close();
+        } catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Writes another column of data to this record.
+	 *
+	 * @param content
+	 *            The data for the new column.
+	 * @param changeDelimiter
+	 *            Whether to change the delimiter to another character if it happens to be in the string
+	 * @exception IOException
+	 *                Thrown if an error occurs while writing data to the destination stream.
+	 */
+	public static void write(final String c, final boolean changeDelimiter) throws IOException {
+		String content = c;
+		checkInit();
+		if (content == null) { content = ""; }
+		if (!firstColumn) { outputStream.write(";"); }
+		outputStream.write(content);
+		firstColumn = false;
+	}
+	
+	public static void writeRecord(final String[] values, final boolean changeDelimiter) throws IOException {
+		if (values != null && values.length > 0) {
+			int i = 0;
+			for (final String value : values) { write(value, changeDelimiter);}
+			endRecord();
+		}
+	}
+
+	public static void endRecord() throws IOException {
+		checkInit();
+		outputStream.write(System.lineSeparator());
+		firstColumn = true;
+	}
+
+	/**
+	 *
+	 */
+	private static void checkInit() throws IOException {
+		if (outputStream == null && fileName != null) {
+			outputStream = new BufferedWriter(
+					new OutputStreamWriter(new FileOutputStream(fileName), Charset.forName("UTF-8")));
+			outputStream.write("IN HERE");
+		}
+	}
+	
+	public static void close() throws IOException{
+		if (outputStream != null) { outputStream.close(); }
+		outputStream = null;
 	}
 
 }
