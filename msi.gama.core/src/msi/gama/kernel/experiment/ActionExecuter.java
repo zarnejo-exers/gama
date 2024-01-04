@@ -16,6 +16,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import msi.gama.runtime.IScope;
 import msi.gaml.statements.IExecutable;
 
+import ummisco.gama.dev.utils.DEBUG;
+
 /**
  * The Class ActionExecuter.
  */
@@ -132,7 +134,11 @@ public class ActionExecuter {
 	 *            the type
 	 */
 	private void executeActions(final int type) {
-		for (final IExecutable action : actions[type]) { if (!scope.interrupted()) { action.executeOn(scope); } }
+		for (final IExecutable action : actions[type]) {
+			if (!scope.interrupted()) {
+				action.executeOn(scope);
+			}
+		}
 	}
 
 	/**
