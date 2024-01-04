@@ -393,6 +393,10 @@ public class DEBUG {
 		DEBUG.LINE();
 	}
 	
+	/*
+	 * Changes in the code starts here
+	 */
+	
 	public static void ADD_LOG(final Object string) {
 		if(ENABLE_LOGGING) {
 			DEBUG.DATA_LINES.add(new String[] {STRINGS.TO_STRING(string)});
@@ -433,7 +437,6 @@ public class DEBUG {
 	
 	public static void writeRecord(final String[] values, final boolean changeDelimiter) throws IOException {
 		if (values != null && values.length > 0) {
-			int i = 0;
 			for (final String value : values) { write(value, changeDelimiter);}
 			endRecord();
 		}
