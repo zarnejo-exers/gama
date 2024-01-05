@@ -423,11 +423,30 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		DEBUG.LOG("START getExperiment");
 		
 		SimulationAgent sa = getSimulation();
-		DEBUG.LOG("MACRO_AGENTS: "+sa.getMacroAgents().toString());
-		DEBUG.LOG("BEHAVIORS: "+sa.getSpecies().getBehaviors().toString());
 		
+		/*
+		 * WORLD values
+		 */
+		DEBUG.LOG("MACRO_AGENTS: "+sa.getMacroAgents());	//returns experiment name
+		DEBUG.LOG("SPECIES: "+sa.getSpecies().toString());	//returns world name
+		IMap<String,Object> goca = sa.getOrCreateAttributes();	//returns the attributes of the world
+		DEBUG.LOG("ATTRIBUTES: "+goca.getKeys());
+		DEBUG.LOG("ATTRIBUTES: "+goca.getValues());
+		
+		/*
+		 * AGENT values
+		 */
 		IList<IAgent> exp_agents = sa.getAgents(getScope());
 		DEBUG.LOG("AGENT count: "+exp_agents.size());
+		DEBUG.LOG(exp_agents.get(0).getName()+" "+exp_agents.get(0).getSpeciesName());
+		DEBUG.LOG("ACTIONS: "+exp_agents.get(0).getSpecies().getActions());
+		DEBUG.LOG("ACTIONS' CLASS: "+exp_agents.get(0).getSpecies().getActions().getClass());
+		DEBUG.LOG("BEHAVIORS: "+ exp_agents.get(0).getSpecies().getBehaviors());
+		DEBUG.LOG("BEHAVIORS: "+ exp_agents.get(0).getSpeciesName());
+		IMap<String,Object> e_goca = exp_agents.get(0).getOrCreateAttributes();	//returns the attributes of the world
+		DEBUG.LOG("ATTRIBUTES: "+e_goca.getKeys());
+		DEBUG.LOG("ATTRIBUTES: "+e_goca.getValues());
+		DEBUG.LOG("TYPE: "+exp_agents.get(0).getGamlType());
 		
 		DEBUG.LOG("END getExperiment");
 		return this;
