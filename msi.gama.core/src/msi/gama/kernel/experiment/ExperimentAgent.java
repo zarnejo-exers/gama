@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterables;
 
@@ -442,11 +443,24 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		DEBUG.LOG("ACTIONS: "+exp_agents.get(0).getSpecies().getActions());
 		DEBUG.LOG("ACTIONS' CLASS: "+exp_agents.get(0).getSpecies().getActions().getClass());
 		DEBUG.LOG("BEHAVIORS: "+ exp_agents.get(0).getSpecies().getBehaviors());
-		DEBUG.LOG("BEHAVIORS: "+ exp_agents.get(0).getSpeciesName());
+		DEBUG.LOG("SPECIES: "+ exp_agents.get(0).getSpeciesName());
 		IMap<String,Object> e_goca = exp_agents.get(0).getOrCreateAttributes();	//returns the attributes of the world
 		DEBUG.LOG("ATTRIBUTES: "+e_goca.getKeys());
-		DEBUG.LOG("ATTRIBUTES: "+e_goca.getValues());
+		DEBUG.LOG("VALUE: "+e_goca.getValues());
 		DEBUG.LOG("TYPE: "+exp_agents.get(0).getGamlType());
+		
+		//try sorting the agents according to species
+		/*
+		 * Map<String, List<Student>> studlistGrouped =
+    		studlist.stream().collect(Collectors.groupingBy(w -> w.stud_location));
+		 */
+		
+		Map<String, List<IAgent>> agentSpeciesGrouped = exp_agents.stream().collect(Collectors.groupingBy(w -> w.getSpeciesName()));
+		
+		for(Object s: agentSpeciesGrouped.keySet()) {
+			DEBUG.LOG("KEY: "+s.toString());
+			DEBUG.LOG("INSTANCES: "+agentSpeciesGrouped.get(s).size());
+		}
 		
 		DEBUG.LOG("END getExperiment");
 		return this;
