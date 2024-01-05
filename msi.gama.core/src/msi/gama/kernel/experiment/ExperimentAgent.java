@@ -61,6 +61,7 @@ import msi.gama.util.IMap;
 import msi.gaml.compilation.SymbolTracer;
 import msi.gaml.descriptions.ActionDescription;
 import msi.gaml.descriptions.IDescription;
+import msi.gaml.descriptions.SpeciesDescription;
 import msi.gaml.descriptions.StatementWithChildrenDescription;
 import msi.gaml.species.ISpecies;
 import msi.gaml.statements.ActionStatement;
@@ -421,7 +422,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 
 	@Override
 	public IExperimentAgent getExperiment() {
-		DEBUG.LOG("START getExperiment");
+		DEBUG.LOG("\nSTART getExperiment");
 		
 		SimulationAgent sa = getSimulation();
 		
@@ -439,10 +440,12 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		 */
 		IList<IAgent> exp_agents = sa.getAgents(getScope());
 		DEBUG.LOG("AGENT count: "+exp_agents.size());
-		DEBUG.LOG(exp_agents.get(0).getName()+" "+exp_agents.get(0).getSpeciesName());
-		DEBUG.LOG("ACTIONS: "+exp_agents.get(0).getSpecies().getActions());
-		DEBUG.LOG("ACTIONS' CLASS: "+exp_agents.get(0).getSpecies().getActions().getClass());
-		DEBUG.LOG("BEHAVIORS: "+ exp_agents.get(0).getSpecies().getBehaviors());
+		DEBUG.LOG("ACTIONS: "+exp_agents.get(0).getSpecies().getActionNames(getScope()));
+		Collection<IStatement> gb = exp_agents.get(0).getSpecies().getBehaviors();
+		for(IStatement g : gb) {
+			DEBUG.LOG("BEHAVIORS: "+g.getName()+" "+g.getKeyword());
+		}
+		
 		DEBUG.LOG("SPECIES: "+ exp_agents.get(0).getSpeciesName());
 		IMap<String,Object> e_goca = exp_agents.get(0).getOrCreateAttributes();	//returns the attributes of the world
 		DEBUG.LOG("ATTRIBUTES: "+e_goca.getKeys());
@@ -455,14 +458,26 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
     		studlist.stream().collect(Collectors.groupingBy(w -> w.stud_location));
 		 */
 		
-		Map<String, List<IAgent>> agentSpeciesGrouped = exp_agents.stream().collect(Collectors.groupingBy(w -> w.getSpeciesName()));
-		
-		for(Object s: agentSpeciesGrouped.keySet()) {
-			DEBUG.LOG("KEY: "+s.toString());
+		Map<ISpecies, List<IAgent>> agentSpeciesGrouped = exp_agents.stream().collect(Collectors.groupingBy(w -> w.getSpecies()));
+		//Idea: I'll go to the level of the species, and get all the methods that are under it
+		//then, save statistically the value of the variables of agents (mean, median, ...)
+		for(ISpecies s: agentSpeciesGrouped.keySet()) {
+			DEBUG.LOG("KEY: "+s.getName());
 			DEBUG.LOG("INSTANCES: "+agentSpeciesGrouped.get(s).size());
+			
+			SpeciesDescription sd = s.getDescription();
+			DEBUG.LOG("BEHAVIORS: "+sd.getBehaviorNames());
+			DEBUG.LOG("ACTIONS: "+sd.getActionNames());
 		}
 		
-		DEBUG.LOG("END getExperiment");
+		/*
+		 * To LOG: 
+		 *  ATTRIBUTES: - Parameter Values, variables in conditional statements related to activation of behavior
+		 *  BEHAVIOR: - States, if there are 
+		 *            - functions, actions, reflex
+		 */
+		
+		DEBUG.LOG("END getExperiment\n");
 		return this;
 	}
 
