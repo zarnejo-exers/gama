@@ -485,6 +485,9 @@ public class ExecutionScope implements IScope {
 	public ExecutionResult execute(final IExecutable statement, final IAgent target,
 			final boolean useTargetScopeForExecution, final Arguments args) {
 		if (statement == null || target == null || interrupted() || target.dead()) return FAILED;
+		
+		DEBUG.ADD_LOG(target.getName()+";"+target.getSpeciesName()+";"+target.getOrCreateAttributes());
+		
 		// We keep the current pushed agent (context of this execution)
 		final IAgent caller = this.getAgent();
 		// We then try to push the agent on the stack
