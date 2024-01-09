@@ -14,9 +14,11 @@ import static msi.gama.runtime.ExecutionResult.FAILED;
 import static msi.gama.runtime.ExecutionResult.PASSED;
 import static msi.gama.runtime.ExecutionResult.withValue;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import msi.gama.common.interfaces.IGui;
 import msi.gama.common.interfaces.IStepable;
@@ -41,6 +43,7 @@ import msi.gaml.expressions.IExpression;
 import msi.gaml.operators.Strings;
 import msi.gaml.statements.Arguments;
 import msi.gaml.statements.IExecutable;
+import msi.gaml.statements.IStatement;
 import msi.gaml.statements.RemoteSequence;
 import msi.gaml.types.IType;
 import msi.gaml.types.ITypesManager;
@@ -484,30 +487,39 @@ public class ExecutionScope implements IScope {
 	@Override
 	public ExecutionResult execute(final IExecutable statement, final IAgent target,
 			final boolean useTargetScopeForExecution, final Arguments args) {
-		if (statement == null || target == null || interrupted() || target.dead()) return FAILED;
 		
-		DEBUG.ADD_LOG(target.getName()+";"+target.getSpeciesName()+";"+target.getOrCreateAttributes());
+		if (statement == null || target == null || interrupted() || target.dead()) return FAILED;
 		
 		// We keep the current pushed agent (context of this execution)
 		final IAgent caller = this.getAgent();
 		// We then try to push the agent on the stack
 		final boolean pushed = push(target);
 		try (StopWatch w = GAMA.benchmark(this, statement)) {
+			
 			// Otherwise we compute the result of the statement, pushing the
 			// arguments if the statement expects them
 			if (args != null) { args.setCaller(caller); }
 			// See issue #2815: we also push args even if they are null
 			statement.setRuntimeArgs(this, args);
+			
 			// #3407 a specific case when create micro experiment, the myself (agentcontext) is as same as target
 			// fixed by change myself to outer agentcontext
 			if (statement instanceof RemoteSequence
 					&& "create".equals(((RemoteSequence) statement).getDescription().getKeyword())
 					&& caller.equals(target)) {
-
 				statement.setMyself(this.agentContext.outer.getAgent());
 			} else {
 				statement.setMyself(caller);
 			}
+			
+			if(target.getSpecies().getBehaviors().contains(statement)) {
+				Collection<IStatement> beh = target.getSpecies().getBehaviors();
+				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
+				DEBUG.LOG("\ngetting the name... "+s.getName()+" type: "+s.getKeyword());
+				DEBUG.LOG(statement);
+			}
+			
+			
 			// We push the caller to the remote sequence (will be cleaned when the remote
 			// sequence leaves its scope)
 			return withValue(statement.executeOn(useTargetScopeForExecution ? target.getScope() : ExecutionScope.this));
@@ -522,7 +534,6 @@ public class ExecutionScope implements IScope {
 			// been previously pushed
 			if (pushed) { pop(target); }
 		}
-
 	}
 
 	@Override
@@ -580,7 +591,7 @@ public class ExecutionScope implements IScope {
 		if (agent == null || agent.dead() || interrupted()) return FAILED;
 		final boolean pushed = push(agent);
 		try {
-			try (StopWatch w = GAMA.benchmark(this, agent)) {
+			try (StopWatch w = GAMA.benchmark(this, agent)) {				
 				return withValue(agent.step(this));
 			} catch (final Throwable ex) {
 				if (ex instanceof OutOfMemoryError) {

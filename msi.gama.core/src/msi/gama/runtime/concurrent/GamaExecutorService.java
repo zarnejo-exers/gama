@@ -32,7 +32,8 @@ import msi.gaml.expressions.IExpression;
 import msi.gaml.operators.Cast;
 import msi.gaml.species.ISpecies;
 import msi.gaml.statements.IExecutable;
-import msi.gaml.types.IType;;
+import msi.gaml.types.IType;
+import ummisco.gama.dev.utils.DEBUG;;
 
 /**
  * The Class GamaExecutorService.
@@ -285,23 +286,32 @@ public abstract class GamaExecutorService {
 	 */
 	private static <A extends IShape> Boolean doStep(final IScope scope, final A[] array, final int threshold,
 			final ISpecies species) {
+		DEBUG.LOG("\ndoStep ");
+		DEBUG.LOG("Species name: "+species.getName());
+		DEBUG.LOG("Actions: "+species.getActionNames(scope));
+		DEBUG.LOG("Behaviors: "+species.getBehaviors());
+		DEBUG.LOG("Variables: "+species.getVarNames());
+		DEBUG.LOG("Count of agents: "+array.length);
 		try (final StopWatch w = GAMA.benchmark(scope, species)) {
 			int concurrency = threshold;
 			if (array.length <= threshold) { concurrency = 0; }
 			switch (concurrency) {
 				case 0:
+					DEBUG.LOG("1");
 					for (final A aa : array) {
 						final IAgent agent = (IAgent) aa;
 						if (agent.dead()) {
 							continue; // add this condition to avoid the activation of dead agents
-						}
+						};
 						if (!scope.step(agent).passed()) return false;
 					}
 					break;
 				case 1:
-					for (final A agent : array) { executeThreaded(() -> scope.step((IAgent) agent)); }
+					DEBUG.LOG("2");
+					for (final A agent : array) {executeThreaded(() -> scope.step((IAgent) agent)); }
 					break;
 				default:
+					DEBUG.LOG("3");
 					ParallelAgentRunner.step(scope, array, threshold);
 			}
 		}
@@ -326,6 +336,7 @@ public abstract class GamaExecutorService {
 	 */
 	public static <A extends IShape> void execute(final IScope scope, final IExecutable executable, final A[] array,
 			final IExpression parallel) throws GamaRuntimeException {
+		DEBUG.LOG("2 execute");
 		int threshold = getParallelism(scope, parallel, Caller.NONE);
 		if (array.length <= threshold) { threshold = 0; }
 		switch (threshold) {
@@ -360,6 +371,7 @@ public abstract class GamaExecutorService {
 	 */
 	public static void execute(final IScope scope, final IExecutable executable, final List<? extends IAgent> list,
 			final IExpression parallel) throws GamaRuntimeException {
+		DEBUG.LOG("1 execute");
 		execute(scope, executable, list.toArray(new IAgent[list.size()]), parallel);
 	}
 
