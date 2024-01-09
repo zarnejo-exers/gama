@@ -307,6 +307,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		getSpecies().getArchitecture().abort(ownScope);
 		closeSimulations();
 		GAMA.releaseScope(ownScope);
+		DEBUG.LOG("Saving the logs to CSV file...");
 		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		super.dispose();
 	}
@@ -339,6 +340,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 
 	@Override
 	public boolean init(final IScope scope) {
+		
 		scope.getGui().clearErrors(scope);
 		super.init(scope);
 		final IOutputManager outputs = getOutputManager();

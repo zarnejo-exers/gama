@@ -407,7 +407,7 @@ public class DEBUG {
 		fileName = "/Users/admin/Desktop/test.csv";
 		try {
 			for(String[] s : DEBUG.DATA_LINES) {
-				DEBUG.writeRecord(s, true);
+				DEBUG.writeRecord(s);
 			}
 			DEBUG.close();
         } catch (IOException e) {
@@ -426,7 +426,7 @@ public class DEBUG {
 	 * @exception IOException
 	 *                Thrown if an error occurs while writing data to the destination stream.
 	 */
-	public static void write(final String c, final boolean changeDelimiter) throws IOException {
+	public static void write(final String c) throws IOException {
 		String content = c;
 		checkInit();
 		if (content == null) { content = ""; }
@@ -435,9 +435,9 @@ public class DEBUG {
 		firstColumn = false;
 	}
 	
-	public static void writeRecord(final String[] values, final boolean changeDelimiter) throws IOException {
+	public static void writeRecord(final String[] values) throws IOException {
 		if (values != null && values.length > 0) {
-			for (final String value : values) { write(value, changeDelimiter);}
+			for (final String value : values) { write(value);}
 			endRecord();
 		}
 	}
@@ -455,7 +455,6 @@ public class DEBUG {
 		if (outputStream == null && fileName != null) {
 			outputStream = new BufferedWriter(
 					new OutputStreamWriter(new FileOutputStream(fileName), Charset.forName("UTF-8")));
-			outputStream.write("IN HERE");
 		}
 	}
 	

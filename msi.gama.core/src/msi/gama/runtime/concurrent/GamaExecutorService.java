@@ -289,13 +289,12 @@ public abstract class GamaExecutorService {
 	 */
 	private static <A extends IShape> Boolean doStep(final IScope scope, final A[] array, final int threshold,
 			final ISpecies species) {
-		DEBUG.LOG("\ndoStep ");
-		DEBUG.LOG("Species name: "+species.getName());
-		DEBUG.LOG("Actions: "+species.getActionNames(scope));
-		List<String> namesList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList()); 
-		DEBUG.LOG("Behaviors: "+namesList.toString());
-		DEBUG.LOG("Variables: "+species.getVarNames());
-		DEBUG.LOG("Count of agents: "+array.length);
+		
+		List<String> behList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList());
+		
+		DEBUG.ADD_LOG("species_name,actions_list,behaviours_list,variables_list,agent_count");
+		DEBUG.ADD_LOG(species.getName()+","+species.getActionNames(scope).toString().replace(",", ";")+","+behList.toString().replace(",", ";")+","+species.getVarNames().toString().replace(",", ";")+","+array.length);
+		
 		try (final StopWatch w = GAMA.benchmark(scope, species)) {
 			int concurrency = threshold;
 			if (array.length <= threshold) { concurrency = 0; }
