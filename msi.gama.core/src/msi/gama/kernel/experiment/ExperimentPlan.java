@@ -401,6 +401,7 @@ public class ExperimentPlan extends GamlSpecies implements IExperimentPlan {
 		public IList<ExperimentAgent> createAgents(final IScope scope, final int number,
 				final List<? extends Map<String, Object>> initialValues, final boolean isRestored,
 				final boolean toBeScheduled, final RemoteSequence sequence) throws GamaRuntimeException {
+			
 			final boolean empty = initialValues == null || initialValues.isEmpty();
 			Map<String, Object> inits = Collections.EMPTY_MAP;
 			for (int i = 0; i < number; i++) {

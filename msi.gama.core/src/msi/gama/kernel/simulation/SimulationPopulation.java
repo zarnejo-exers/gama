@@ -36,6 +36,7 @@ import msi.gaml.compilation.IAgentConstructor;
 import msi.gaml.species.ISpecies;
 import msi.gaml.statements.RemoteSequence;
 import msi.gaml.variables.IVariable;
+import ummisco.gama.dev.utils.DEBUG;
 
 /**
  * The Class SimulationPopulation.

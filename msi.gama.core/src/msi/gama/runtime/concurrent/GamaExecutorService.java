@@ -13,9 +13,11 @@ package msi.gama.runtime.concurrent;
 import static msi.gama.common.preferences.GamaPreferences.create;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.stream.Collectors;
 
 import msi.gama.common.preferences.GamaPreferences;
 import msi.gama.common.preferences.Pref;
@@ -32,6 +34,7 @@ import msi.gaml.expressions.IExpression;
 import msi.gaml.operators.Cast;
 import msi.gaml.species.ISpecies;
 import msi.gaml.statements.IExecutable;
+import msi.gaml.statements.IStatement;
 import msi.gaml.types.IType;
 import ummisco.gama.dev.utils.DEBUG;;
 
@@ -289,7 +292,8 @@ public abstract class GamaExecutorService {
 		DEBUG.LOG("\ndoStep ");
 		DEBUG.LOG("Species name: "+species.getName());
 		DEBUG.LOG("Actions: "+species.getActionNames(scope));
-		DEBUG.LOG("Behaviors: "+species.getBehaviors());
+		List<String> namesList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList()); 
+		DEBUG.LOG("Behaviors: "+namesList.toString());
 		DEBUG.LOG("Variables: "+species.getVarNames());
 		DEBUG.LOG("Count of agents: "+array.length);
 		try (final StopWatch w = GAMA.benchmark(scope, species)) {
@@ -297,7 +301,6 @@ public abstract class GamaExecutorService {
 			if (array.length <= threshold) { concurrency = 0; }
 			switch (concurrency) {
 				case 0:
-					DEBUG.LOG("1");
 					for (final A aa : array) {
 						final IAgent agent = (IAgent) aa;
 						if (agent.dead()) {
@@ -307,14 +310,13 @@ public abstract class GamaExecutorService {
 					}
 					break;
 				case 1:
-					DEBUG.LOG("2");
 					for (final A agent : array) {executeThreaded(() -> scope.step((IAgent) agent)); }
 					break;
 				default:
-					DEBUG.LOG("3");
 					ParallelAgentRunner.step(scope, array, threshold);
 			}
 		}
+		DEBUG.LOG("=======================================================================================");
 		return true;
 	}
 
@@ -336,7 +338,6 @@ public abstract class GamaExecutorService {
 	 */
 	public static <A extends IShape> void execute(final IScope scope, final IExecutable executable, final A[] array,
 			final IExpression parallel) throws GamaRuntimeException {
-		DEBUG.LOG("2 execute");
 		int threshold = getParallelism(scope, parallel, Caller.NONE);
 		if (array.length <= threshold) { threshold = 0; }
 		switch (threshold) {
@@ -371,7 +372,6 @@ public abstract class GamaExecutorService {
 	 */
 	public static void execute(final IScope scope, final IExecutable executable, final List<? extends IAgent> list,
 			final IExpression parallel) throws GamaRuntimeException {
-		DEBUG.LOG("1 execute");
 		execute(scope, executable, list.toArray(new IAgent[list.size()]), parallel);
 	}
 

@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import msi.gama.common.interfaces.IGui;
 import msi.gama.common.interfaces.IStepable;
@@ -41,6 +42,7 @@ import msi.gama.util.IList;
 import msi.gaml.compilation.ISymbol;
 import msi.gaml.expressions.IExpression;
 import msi.gaml.operators.Strings;
+import msi.gaml.statements.ActionStatement;
 import msi.gaml.statements.Arguments;
 import msi.gaml.statements.IExecutable;
 import msi.gaml.statements.IStatement;
@@ -512,13 +514,28 @@ public class ExecutionScope implements IScope {
 				statement.setMyself(caller);
 			}
 			
+			/*
+			 * NOTE: 
+			 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
+			 * but the succeeding lines need no longer be filtered because it has already been considered 
+			 * However, it can still be useful because here it can be checked which lines get executed and which does not 
+			 */
+			Boolean entered = false;
 			if(target.getSpecies().getBehaviors().contains(statement)) {
 				Collection<IStatement> beh = target.getSpecies().getBehaviors();
 				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				DEBUG.LOG("\ngetting the name... "+s.getName()+" type: "+s.getKeyword());
-				DEBUG.LOG(statement);
+				DEBUG.LOG(" Type: "+s.getKeyword()+" Executed: "+s.getName());
+				entered = true;
+			}else if(target.getSpecies().getActions().contains(statement)) {
+				Collection<ActionStatement> ceh = target.getSpecies().getActions();
+				ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
+				DEBUG.LOG(" Type: "+c.getKeyword()+" Executed: "+c.getName());
+				entered = true;
 			}
 			
+			if(entered) {
+				DEBUG.LOG(" Agent: "+target.getName()+" Type: "+target.getSpeciesName()+"\n");
+			}
 			
 			// We push the caller to the remote sequence (will be cleaned when the remote
 			// sequence leaves its scope)
