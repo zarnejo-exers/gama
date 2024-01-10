@@ -69,6 +69,7 @@ import msi.gaml.species.ISpecies;
 import msi.gaml.statements.IExecutable;
 import msi.gaml.types.GamaGeometryType;
 import msi.gaml.types.IType;
+import ummisco.gama.dev.utils.DEBUG;
 
 /**
  * Defines an instance of a model (a simulation). Serves as the support for model species (whose metaclass is
@@ -377,6 +378,7 @@ public class SimulationAgent extends GamlAgent implements ITopLevelAgent {
 		executer.executeOneShotActions();
 		if (outputs != null) { outputs.step(this.getScope()); }
 		ownClock.step();
+		DEBUG.ADD_LOG("Cycle,"+ownClock.getCycle());
 	}
 
 	@Override

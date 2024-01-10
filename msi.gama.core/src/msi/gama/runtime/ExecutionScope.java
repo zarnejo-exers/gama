@@ -514,32 +514,37 @@ public class ExecutionScope implements IScope {
 				statement.setMyself(caller);
 			}
 			
-			/*
-			 * NOTE: 
-			 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
-			 * but the succeeding lines need no longer be filtered because it has already been considered 
-			 * However, it can still be useful because here it can be checked which lines get executed and which does not 
-			 */
-			Boolean entered = false;
-			if(target.getSpecies().getBehaviors().contains(statement)) {
-				Collection<IStatement> beh = target.getSpecies().getBehaviors();
-				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				DEBUG.LOG(" Type: "+s.getKeyword()+" Executed: "+s.getName());
-				entered = true;
-			}else if(target.getSpecies().getActions().contains(statement)) {
-				Collection<ActionStatement> ceh = target.getSpecies().getActions();
-				ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				DEBUG.LOG(" Type: "+c.getKeyword()+" Executed: "+c.getName());
-				entered = true;
-			}
-			
-			if(entered) {
-				DEBUG.LOG(" Agent: "+target.getName()+" Type: "+target.getSpeciesName()+"\n");
-			}
-			
 			// We push the caller to the remote sequence (will be cleaned when the remote
 			// sequence leaves its scope)
-			return withValue(statement.executeOn(useTargetScopeForExecution ? target.getScope() : ExecutionScope.this));
+			ExecutionResult res = withValue(statement.executeOn(useTargetScopeForExecution ? target.getScope() : ExecutionScope.this)); 
+			
+			//log only if the execution was successful
+			if(!res.equals(ExecutionResult.FAILED)) {
+				/*
+				 * NOTE: 
+				 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
+				 * but the succeeding lines need no longer be filtered because it has already been considered 
+				 * However, it can still be useful because here it can be checked which lines get executed and which does not 
+				 */
+				String log = "";
+				Boolean b = false;
+				if(target.getSpecies().getBehaviors().contains(statement)) {
+					Collection<IStatement> beh = target.getSpecies().getBehaviors();
+					IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
+					log = "Type,"+s.getKeyword()+",Name,"+s.getName();
+					b = true;
+				}else if(target.getSpecies().getActions().contains(statement)) {
+					Collection<ActionStatement> ceh = target.getSpecies().getActions();
+					ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
+					log = "Type,"+c.getKeyword()+",Name,"+c.getName();
+					b = true;
+				}
+				if(b) {
+					DEBUG.ADD_LOG("Agent,"+caller.getName()+","+log);
+				}
+			}
+			
+			return res;
 		} catch (final GamaRuntimeException g) {
 			GAMA.reportAndThrowIfNeeded(this, g, true);
 			return ExecutionResult.FAILED;
