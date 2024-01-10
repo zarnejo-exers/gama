@@ -290,12 +290,12 @@ public abstract class GamaExecutorService {
 	private static <A extends IShape> Boolean doStep(final IScope scope, final A[] array, final int threshold,
 			final ISpecies species) {
 		
-		List<String> behList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList());
-		
 		//log only if species has agent instances
+		List<String> behList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList());
 		if(array.length > 0) {
 			DEBUG.ADD_LOG("SPECIES_STEP,Species_Name,"+species.getName()+",Actions_List,"+species.getActionNames(scope).toString().replace(",", ";")+",Behaviours_List,"+behList.toString().replace(",", ";")+",Variables_List,"+species.getVarNames().toString().replace(",", ";")+",Agent_Count,"+array.length);
 		}
+		
 		try (final StopWatch w = GAMA.benchmark(scope, species)) {
 			int concurrency = threshold;
 			if (array.length <= threshold) { concurrency = 0; }

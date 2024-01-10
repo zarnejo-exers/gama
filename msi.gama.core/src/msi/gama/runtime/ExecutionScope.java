@@ -81,10 +81,14 @@ public class ExecutionScope implements IScope {
 
 	/** The errors disabled. */
 	private volatile boolean _trace, _in_try_mode, _errors_disabled;
-
+	
 	/** The flow status. */
 	private volatile FlowStatus flowStatus = FlowStatus.NORMAL;
-
+	
+	/** The marker  for logging*/
+	private HashMap<String,Object> temp_vars =new HashMap<String,Object>();
+	private IAgent previous_agent = null;
+	
 	/** The current symbol. */
 	// private ISymbol currentSymbol;
 
@@ -541,14 +545,24 @@ public class ExecutionScope implements IScope {
 					log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
 					b = true;
 				}
-				if(b) {
-					DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);
-					Collection<IVariable> vg = caller.getSpecies().getVars();
-					for(IVariable v : vg) {
-						if((v.getInitialValue(exec)!= null && caller.getDirectVarValue(exec, v.getName())!=null) && (!v.getInitialValue(exec).equals(caller.getDirectVarValue(exec, v.getName())))) {
-							DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v.getName()+",Type,"+v.getType()+",Initial_Value,"+v.getInitialValue(exec).toString().replace(",", ";")+",Agent_Value,"+caller.getDirectVarValue(exec, v.getName()).toString().replace(",", ";"));
+				
+				if(b) {	//beginning of a method
+					
+					if(!temp_vars.isEmpty()) {	//the last executed statement is the last for the current method
+						//log the variables of the recently finished method before logging the details of the
+						for(String v : temp_vars.keySet()) {
+							if(previous_agent.getDirectVarValue(exec, v)!=null && (!temp_vars.get(v).equals(previous_agent.getDirectVarValue(exec, v)))) {
+								DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+temp_vars.get(v).toString().replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
+							}
 						}
+						temp_vars.clear();
 					}
+					DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);
+					//remember the initial values of the variable
+					for(IVariable v : caller.getSpecies().getVars()) {
+						temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));
+					}
+					previous_agent = caller;
 				}
 			}
 			
