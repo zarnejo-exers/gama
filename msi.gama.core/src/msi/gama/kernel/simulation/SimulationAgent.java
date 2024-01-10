@@ -368,6 +368,7 @@ public class SimulationAgent extends GamlAgent implements ITopLevelAgent {
 	protected boolean preStep(final IScope scope) {
 		ownClock.beginCycle();
 		executer.executeBeginActions();
+		DEBUG.ADD_LOG("Cycle,"+ownClock.getCycle());
 		return super.preStep(scope);
 	}
 
@@ -378,7 +379,7 @@ public class SimulationAgent extends GamlAgent implements ITopLevelAgent {
 		executer.executeOneShotActions();
 		if (outputs != null) { outputs.step(this.getScope()); }
 		ownClock.step();
-		DEBUG.ADD_LOG("Cycle,"+ownClock.getCycle());
+		//DEBUG.ADD_LOG("Cycle,"+ownClock.getCycle());
 	}
 
 	@Override

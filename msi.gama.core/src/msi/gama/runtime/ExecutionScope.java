@@ -531,16 +531,16 @@ public class ExecutionScope implements IScope {
 				if(target.getSpecies().getBehaviors().contains(statement)) {
 					Collection<IStatement> beh = target.getSpecies().getBehaviors();
 					IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
-					log = "Type,"+s.getKeyword()+",Name,"+s.getName();
+					log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
 					b = true;
 				}else if(target.getSpecies().getActions().contains(statement)) {
 					Collection<ActionStatement> ceh = target.getSpecies().getActions();
 					ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
-					log = "Type,"+c.getKeyword()+",Name,"+c.getName();
+					log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
 					b = true;
 				}
 				if(b) {
-					DEBUG.ADD_LOG("Agent,"+caller.getName()+","+log);
+					DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);
 				}
 			}
 			
