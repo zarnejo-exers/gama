@@ -316,6 +316,9 @@ public abstract class GamaExecutorService {
 					ParallelAgentRunner.step(scope, array, threshold);
 			}
 		}
+		
+		scope.logLastVarChange(scope);
+		
 		return true;
 	}
 

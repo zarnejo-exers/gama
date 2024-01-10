@@ -88,6 +88,7 @@ public class ExecutionScope implements IScope {
 	/** The marker  for logging*/
 	private HashMap<String,Object> temp_vars =new HashMap<String,Object>();
 	private IAgent previous_agent = null;
+	private IScope previous_scope = null;
 	
 	/** The current symbol. */
 	// private ISymbol currentSymbol;
@@ -502,7 +503,42 @@ public class ExecutionScope implements IScope {
 		// We then try to push the agent on the stack
 		final boolean pushed = push(target);
 		try (StopWatch w = GAMA.benchmark(this, statement)) {
-			IScope exec = useTargetScopeForExecution ? target.getScope() : ExecutionScope.this;
+			IScope exec = useTargetScopeForExecution ? target.getScope() : ExecutionScope.this; 
+			
+			/*
+			 * NOTE: 
+			 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
+			 * but the succeeding lines need no longer be filtered because it has already been considered 
+			 * However, it can still be useful because here it can be checked which lines get executed and which does not
+			 * LOG before execution 
+			 */
+			String log = "";
+			Boolean b = false;
+			if(target.getSpecies().getBehaviors().contains(statement)) {
+				Collection<IStatement> beh = target.getSpecies().getBehaviors();
+				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
+				log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
+				b = true;
+			}else if(target.getSpecies().getActions().contains(statement)) {
+				Collection<ActionStatement> ceh = target.getSpecies().getActions();
+				ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
+				log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
+				b = true;
+			}
+			
+			if(b) {	//beginning of a method	
+				//write the variables that changed during the execution of the recent method
+				if(!temp_vars.isEmpty()) {	//the last executed statement is the last for the current method, log everything
+					logLastVarChange(previous_scope);
+				}
+				
+				DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
+				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
+					temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
+				}
+				previous_agent = caller;
+				previous_scope = exec;
+			}
 			
 			// Otherwise we compute the result of the statement, pushing the
 			// arguments if the statement expects them
@@ -522,51 +558,7 @@ public class ExecutionScope implements IScope {
 			
 			// We push the caller to the remote sequence (will be cleaned when the remote
 			// sequence leaves its scope)
-			ExecutionResult res = withValue(statement.executeOn(exec)); 
-			
-			//log only if the execution was successful
-			if(!res.equals(ExecutionResult.FAILED)) {
-				/*
-				 * NOTE: 
-				 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
-				 * but the succeeding lines need no longer be filtered because it has already been considered 
-				 * However, it can still be useful because here it can be checked which lines get executed and which does not 
-				 */
-				String log = "";
-				Boolean b = false;
-				if(target.getSpecies().getBehaviors().contains(statement)) {
-					Collection<IStatement> beh = target.getSpecies().getBehaviors();
-					IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
-					log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
-					b = true;
-				}else if(target.getSpecies().getActions().contains(statement)) {
-					Collection<ActionStatement> ceh = target.getSpecies().getActions();
-					ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
-					log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
-					b = true;
-				}
-				
-				if(b) {	//beginning of a method
-					
-					if(!temp_vars.isEmpty()) {	//the last executed statement is the last for the current method
-						//log the variables of the recently finished method before logging the details of the
-						for(String v : temp_vars.keySet()) {
-							if(previous_agent.getDirectVarValue(exec, v)!=null && (!temp_vars.get(v).equals(previous_agent.getDirectVarValue(exec, v)))) {
-								DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+temp_vars.get(v).toString().replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
-							}
-						}
-						temp_vars.clear();
-					}
-					DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);
-					//remember the initial values of the variable
-					for(IVariable v : caller.getSpecies().getVars()) {
-						temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));
-					}
-					previous_agent = caller;
-				}
-			}
-			
-			return res;
+			return withValue(statement.executeOn(exec));
 		} catch (final GamaRuntimeException g) {
 			GAMA.reportAndThrowIfNeeded(this, g, true);
 			return ExecutionResult.FAILED;
@@ -578,6 +570,19 @@ public class ExecutionScope implements IScope {
 			// been previously pushed
 			if (pushed) { pop(target); }
 		}
+	}
+	
+	@Override
+	public void logLastVarChange(IScope exec) {
+		//log the variables of the recently finished method before logging the details of the
+		for(String v : temp_vars.keySet()) {
+			
+			if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
+				String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
+				DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
+			}
+		}
+		temp_vars.clear();
 	}
 
 	@Override
