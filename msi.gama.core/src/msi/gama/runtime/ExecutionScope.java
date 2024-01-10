@@ -50,6 +50,7 @@ import msi.gaml.statements.RemoteSequence;
 import msi.gaml.types.IType;
 import msi.gaml.types.ITypesManager;
 import msi.gaml.types.Types;
+import msi.gaml.variables.IVariable;
 import ummisco.gama.dev.utils.COUNTER;
 import ummisco.gama.dev.utils.DEBUG;
 
@@ -497,6 +498,7 @@ public class ExecutionScope implements IScope {
 		// We then try to push the agent on the stack
 		final boolean pushed = push(target);
 		try (StopWatch w = GAMA.benchmark(this, statement)) {
+			IScope exec = useTargetScopeForExecution ? target.getScope() : ExecutionScope.this;
 			
 			// Otherwise we compute the result of the statement, pushing the
 			// arguments if the statement expects them
@@ -516,7 +518,7 @@ public class ExecutionScope implements IScope {
 			
 			// We push the caller to the remote sequence (will be cleaned when the remote
 			// sequence leaves its scope)
-			ExecutionResult res = withValue(statement.executeOn(useTargetScopeForExecution ? target.getScope() : ExecutionScope.this)); 
+			ExecutionResult res = withValue(statement.executeOn(exec)); 
 			
 			//log only if the execution was successful
 			if(!res.equals(ExecutionResult.FAILED)) {
@@ -541,6 +543,12 @@ public class ExecutionScope implements IScope {
 				}
 				if(b) {
 					DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);
+					Collection<IVariable> vg = caller.getSpecies().getVars();
+					for(IVariable v : vg) {
+						if(!v.getInitialValue(exec).equals(caller.getDirectVarValue(exec, v.getName()))) {
+							DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v.getName()+",Type,"+v.getType()+",Initial_Value,"+v.getInitialValue(exec).toString().replace(",", ";")+",Agent_Value,"+caller.getDirectVarValue(exec, v.getName()).toString().replace(",", ";"));
+						}
+					}
 				}
 			}
 			
