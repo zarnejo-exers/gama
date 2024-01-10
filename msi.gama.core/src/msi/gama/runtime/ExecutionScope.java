@@ -545,7 +545,7 @@ public class ExecutionScope implements IScope {
 					DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);
 					Collection<IVariable> vg = caller.getSpecies().getVars();
 					for(IVariable v : vg) {
-						if(!v.getInitialValue(exec).equals(caller.getDirectVarValue(exec, v.getName()))) {
+						if((v.getInitialValue(exec)!= null && caller.getDirectVarValue(exec, v.getName())!=null) && (!v.getInitialValue(exec).equals(caller.getDirectVarValue(exec, v.getName())))) {
 							DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v.getName()+",Type,"+v.getType()+",Initial_Value,"+v.getInitialValue(exec).toString().replace(",", ";")+",Agent_Value,"+caller.getDirectVarValue(exec, v.getName()).toString().replace(",", ";"));
 						}
 					}

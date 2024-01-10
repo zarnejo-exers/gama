@@ -403,12 +403,14 @@ public class DEBUG {
 		}
 	}
 	
+	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
 		fileName = "/Users/admin/Desktop/test.csv";
 		try {
 			for(String[] s : DEBUG.DATA_LINES) {
 				DEBUG.writeRecord(s);
 			}
+			DEBUG.DATA_LINES.clear();
 			DEBUG.close();
         } catch (IOException e) {
 			// TODO Auto-generated catch block
