@@ -530,7 +530,9 @@ public class ExecutionScope implements IScope {
 					logLastVarChange(previous_scope);
 				}
 				
+				DEBUG.ADD_LOG("START_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+caller.getSpeciesName());
 				DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
+				
 				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
 					temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
 				}
@@ -574,12 +576,12 @@ public class ExecutionScope implements IScope {
 	public void logLastVarChange(IScope exec) {
 		//log the variables of the recently finished method before logging the details of the
 		for(String v : temp_vars.keySet()) {
-			
 			if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
 				String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
 				DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
 			}
 		}
+		DEBUG.ADD_LOG("END_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
 		temp_vars.clear();
 	}
 

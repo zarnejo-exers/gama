@@ -317,7 +317,9 @@ public abstract class GamaExecutorService {
 			}
 		}
 		
-		scope.logLastVarChange(scope);
+		if(array.length > 0) {
+			scope.logLastVarChange(scope);
+		}
 		
 		return true;
 	}
