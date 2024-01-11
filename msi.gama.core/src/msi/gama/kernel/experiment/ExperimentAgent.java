@@ -11,12 +11,9 @@
 package msi.gama.kernel.experiment;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterables;
 
@@ -58,17 +55,8 @@ import msi.gama.util.GamaMap;
 import msi.gama.util.GamaMapFactory;
 import msi.gama.util.IList;
 import msi.gama.util.IMap;
-import msi.gaml.compilation.SymbolTracer;
-import msi.gaml.descriptions.ActionDescription;
-import msi.gaml.descriptions.IDescription;
-import msi.gaml.descriptions.SpeciesDescription;
-import msi.gaml.descriptions.StatementWithChildrenDescription;
 import msi.gaml.species.ISpecies;
-import msi.gaml.statements.ActionStatement;
-import msi.gaml.statements.Facets;
-import msi.gaml.statements.Facets.Facet;
 import msi.gaml.statements.IExecutable;
-import msi.gaml.statements.IStatement;
 import msi.gaml.types.GamaGeometryType;
 import msi.gaml.types.IType;
 import msi.gaml.types.Types;
@@ -304,11 +292,25 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		if (dying || dead)
 			return;
 		dying = true;
+
+		/*
+		 * LOGGING: WORLD values
+		 */
+		SimulationAgent sa = getScope().getSimulation();
+		IMap<String,Object> goca = sa.getOrCreateAttributes();	//returns the attributes of the world
+		//String log = "SIMULATION_NAME,"+sa.getName();
+		String log = "EXPERIMENT_PARAMS";
+		for(String k : goca.getKeys()) {
+			String val = (goca.get(k) == null)?"null":goca.get(k).toString();
+			log = log + ",KEY,"+k+",VALUE,"+val.replace(",", ";");
+		}
+		DEBUG.ADD_LOG(log);
+		DEBUG.LOG("Saving the logs to CSV file...");
+		DEBUG.SAVE_LOG();	//save all the logs in the log file
+		
 		getSpecies().getArchitecture().abort(ownScope);
 		closeSimulations();
 		GAMA.releaseScope(ownScope);
-		DEBUG.LOG("Saving the logs to CSV file...");
-		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		super.dispose();
 	}
 

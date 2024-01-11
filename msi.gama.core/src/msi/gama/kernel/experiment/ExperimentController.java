@@ -84,6 +84,7 @@ public class ExperimentController implements IExperimentController {
 		try {
 			lock.acquire();
 		} catch (final InterruptedException e) {}
+		
 		commandThread.start();
 		executionThread.start();
 	}

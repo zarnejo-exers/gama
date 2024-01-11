@@ -13,6 +13,7 @@ package msi.gama.runtime;
 import msi.gama.common.interfaces.IDisposable;
 import msi.gama.common.util.PoolUtils;
 import msi.gama.metamodel.agent.IAgent;
+import ummisco.gama.dev.utils.DEBUG;
 
 /**
  * The Class AgentExecutionContext.

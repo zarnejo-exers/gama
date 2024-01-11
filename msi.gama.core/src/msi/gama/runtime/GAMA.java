@@ -124,7 +124,7 @@ public class GAMA {
 	 * @param model
 	 */
 	public static void runGuiExperiment(final String id, final IModel model) {
-		// DEBUG.OUT("Launching experiment " + id + " of model " + model.getFilePath());
+//		 DEBUG.OUT("Launching experiment " + id + " of model " + model.getFilePath());
 		final IExperimentPlan newExperiment = model.getExperiment(id);
 		if (newExperiment == null) // DEBUG.OUT("No experiment " + id + " in model " + model.getFilePath());
 			return;
