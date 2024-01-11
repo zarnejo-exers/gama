@@ -87,6 +87,7 @@ public class ExecutionScope implements IScope {
 	private HashMap<String,Object> temp_vars =new HashMap<String,Object>();
 	private IAgent previous_agent = null;
 	private IScope previous_scope = null;
+	private int LOG_ID = 0;
 	
 	/** The current symbol. */
 	// private ISymbol currentSymbol;
@@ -527,11 +528,10 @@ public class ExecutionScope implements IScope {
 			if(b) {	//beginning of a method	
 				//write the variables that changed during the execution of the recent method
 				if(!temp_vars.isEmpty()) {	//the last executed statement is the last for the current method, log everything
-					logLastVarChange(previous_scope);
+					logLastVarChange(previous_scope, false);
 				}
 				
-				DEBUG.ADD_LOG("START_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+caller.getSpeciesName());
-				DEBUG.ADD_LOG("AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
+				DEBUG.ADD_LOG("ID,"+exec.getLogID()+",START_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+caller.getSpeciesName()+",AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
 				
 				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
 					temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
@@ -573,16 +573,35 @@ public class ExecutionScope implements IScope {
 	}
 	
 	@Override
-	public void logLastVarChange(IScope exec) {
-		//log the variables of the recently finished method before logging the details of the
-		for(String v : temp_vars.keySet()) {
-			if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
-				String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
-				DEBUG.ADD_LOG("VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
+	public void logLastVarChange(IScope exec, boolean is_end) {
+		
+		String end = (is_end)?",END_STEP,":",END_EXECUTION,";
+		
+		if(previous_agent != null) {
+			//log the variables of the recently finished method before logging the details of the
+			for(String v : temp_vars.keySet()) {
+				if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
+					String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
+					DEBUG.ADD_LOG("ID,"+exec.getLogID()+",VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
+				}
 			}
+			DEBUG.ADD_LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
+			previous_agent = null;
+		}else {
+			DEBUG.ADD_LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",NO_ACTION_BEHAVIOR");
 		}
-		DEBUG.ADD_LOG("END_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
+		
 		temp_vars.clear();
+	}
+	
+	@Override
+	public int getLogID() {
+		return LOG_ID;
+	}
+	
+	@Override
+	public void incrementLogID() {
+		LOG_ID = LOG_ID+1;
 	}
 
 	@Override

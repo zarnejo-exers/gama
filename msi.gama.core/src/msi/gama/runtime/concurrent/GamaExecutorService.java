@@ -293,7 +293,7 @@ public abstract class GamaExecutorService {
 		//log only if species has agent instances
 		List<String> behList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList());
 		if(array.length > 0) {
-			DEBUG.ADD_LOG("SPECIES_STEP,Species_Name,"+species.getName()+",Actions_List,"+species.getActionNames(scope).toString().replace(",", ";")+",Behaviours_List,"+behList.toString().replace(",", ";")+",Variables_List,"+species.getVarNames().toString().replace(",", ";")+",Agent_Count,"+array.length);
+			DEBUG.ADD_LOG("ID,"+scope.getLogID()+",SPECIES_STEP,Species_Name,"+species.getName()+",Actions_List,"+species.getActionNames(scope).toString().replace(",", ";")+",Behaviours_List,"+behList.toString().replace(",", ";")+",Variables_List,"+species.getVarNames().toString().replace(",", ";")+",Agent_Count,"+array.length);
 		}
 		
 		try (final StopWatch w = GAMA.benchmark(scope, species)) {
@@ -318,7 +318,8 @@ public abstract class GamaExecutorService {
 		}
 		
 		if(array.length > 0) {
-			scope.logLastVarChange(scope);
+			scope.logLastVarChange(scope, true);
+			scope.incrementLogID();
 		}
 		
 		return true;
