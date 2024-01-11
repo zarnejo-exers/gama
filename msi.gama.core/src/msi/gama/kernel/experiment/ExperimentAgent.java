@@ -301,7 +301,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		//String log = "SIMULATION_NAME,"+sa.getName();
 		String log = "EXPERIMENT_PARAMS";
 		for(String k : goca.getKeys()) {
-			String val = (goca.get(k) == null)?"null":goca.get(k).toString();
+			String val = (goca.get(k) == null)?"null":(goca.get(k).toString().replace("\\s+", "")).replace("\n", "");
 			log = log + ",KEY,"+k+",VALUE,"+val.replace(",", ";");
 		}
 		DEBUG.ADD_LOG(log);
