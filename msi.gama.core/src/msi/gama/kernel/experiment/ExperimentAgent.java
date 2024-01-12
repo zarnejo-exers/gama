@@ -304,7 +304,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 			String val = (goca.get(k) == null)?"null":(goca.get(k).toString().replace("\\s+", "")).replace("\n", "");
 			log = log + ",KEY,"+k+",VALUE,"+val.replace(",", ";");
 		}
-		DEBUG.ADD_LOG(log);
+		DEBUG.LOG(log);
 		DEBUG.LOG("Saving the logs to CSV file...");
 		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		

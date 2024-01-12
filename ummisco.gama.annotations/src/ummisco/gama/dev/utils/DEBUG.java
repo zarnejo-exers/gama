@@ -407,6 +407,7 @@ public class DEBUG {
 	public static void SAVE_LOG() {
 		fileName = "/Users/admin/Desktop/test.csv";
 		try {
+			DEBUG.writeRecord(new String[] {"case_id", "activity", "timestamp", "value", "resource"});
 			for(String[] s : DEBUG.DATA_LINES) {
 				DEBUG.writeRecord(s);
 			}
