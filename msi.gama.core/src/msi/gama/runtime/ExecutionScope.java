@@ -518,13 +518,13 @@ public class ExecutionScope implements IScope {
 				Collection<IStatement> beh = target.getSpecies().getBehaviors();
 				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
 				//log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
-				log = "<behavior>"+s.getName();	//activity
+				log = "[behavior]"+s.getName();	//activity
 				b = true;
 			}else if(target.getSpecies().getActions().contains(statement)) {
 				Collection<ActionStatement> ceh = target.getSpecies().getActions();
 				ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
 				//log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
-				log = "<action>"+c.getName();	//activity
+				log = "[action]"+c.getName();	//activity
 				b = true;
 			}
 			
@@ -534,7 +534,7 @@ public class ExecutionScope implements IScope {
 					logLastVarChange(previous_scope, false);
 				}
 				
-				DEBUG.LOG("ID,"+exec.getLogID()+",START_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+caller.getSpeciesName()+",AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
+				//DEBUG.LOG("ID,"+exec.getLogID()+",START_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+caller.getSpeciesName()+",AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
 				DEBUG.ADD_LOG(exec.getLogID()+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";"+caller.getName()+";"+caller.getSpeciesName());
 				
 				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
@@ -586,14 +586,14 @@ public class ExecutionScope implements IScope {
 			for(String v : temp_vars.keySet()) {
 				if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
 					String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
-					DEBUG.LOG("ID,"+exec.getLogID()+",VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
-					DEBUG.ADD_LOG(exec.getLogID()+";<variable>"+v+";"+(new Timestamp(System.currentTimeMillis()))+";"+val.replace(",", " ")+";"+previous_agent.getSpeciesName());
+					//DEBUG.LOG("ID,"+exec.getLogID()+",VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
+					DEBUG.ADD_LOG(exec.getLogID()+";[variable]"+v+";"+(new Timestamp(System.currentTimeMillis()))+";"+val.replace(",", " ")+";"+previous_agent.getSpeciesName());
 				}
 			}
-			DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
+			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
 			previous_agent = null;
 		}else {
-			DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",NO_ACTION_BEHAVIOR");
+			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",NO_ACTION_BEHAVIOR");
 		}
 		
 		temp_vars.clear();

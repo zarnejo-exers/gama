@@ -79,6 +79,8 @@ public class DEBUG {
 	private static Writer outputStream = null;
 	
 	private static String fileName = null;
+	
+	private static int file_number = 0;
 
 	/**
 	 * Uses a custom security manager to get the caller class name. Use of reflection would be faster, but more prone to
@@ -405,9 +407,9 @@ public class DEBUG {
 	
 	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
-		fileName = "/Users/admin/Desktop/test.csv";
+		fileName = "/Users/admin/Desktop/visualization_experiments/"+file_number+"_itp.csv";
 		try {
-			DEBUG.writeRecord(new String[] {"case_id", "activity", "timestamp", "value", "resource"});
+			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"});
 			for(String[] s : DEBUG.DATA_LINES) {
 				DEBUG.writeRecord(s);
 			}
@@ -417,6 +419,7 @@ public class DEBUG {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		file_number++;
 	}
 	
 	/**

@@ -898,6 +898,10 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 
 	@Override
 	protected void postStep(final IScope scope) {
+		
+		DEBUG.LOG("Saving file...");
+		DEBUG.SAVE_LOG();	//save all the logs in the log file
+		
 		// super.postStep(scope);
 		executer.executeEndActions();
 		executer.executeOneShotActions();
