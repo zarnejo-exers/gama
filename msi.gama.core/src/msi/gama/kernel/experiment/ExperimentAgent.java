@@ -299,20 +299,19 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		/*
 		 * LOGGING: WORLD values
 		 */
-		DEBUG.ADD_LOG("EXPERIMENT_PARAMS");
 		
 		Map<String, ISpecies> all_species = getModel().getAllSpecies();
 		
 		for(ISpecies a : all_species.values()) {
-			DEBUG.ADD_LOG("SPECIES NAME: "+a.getName());
-			DEBUG.ADD_LOG("VARIABLES: "+a.getVarNames());
-			DEBUG.ADD_LOG("ACTIONS: "+a.getActionNames(getScope()));
+			DEBUG.ADD_LOG("SPECIES NAME:,"+a.getName());
+			DEBUG.ADD_LOG("VARIABLES:,"+a.getVarNames());
+			DEBUG.ADD_LOG("ACTIONS:,"+a.getActionNames(getScope()));
 			
 			Iterator<IStatement> reflex = (a.getBehaviors()).iterator();
-			String log = "BEHAVIOR: ";
+			String log = "BEHAVIOR:";
 			while(reflex.hasNext()) {
 				IStatement r = reflex.next();
-				log = log +";"+ r.getName();
+				log = log +","+ r.getName();
 			}
 			DEBUG.ADD_LOG(log);
 		}
