@@ -12,6 +12,7 @@ package msi.gama.kernel.experiment;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,7 @@ import msi.gama.util.IList;
 import msi.gama.util.IMap;
 import msi.gaml.species.ISpecies;
 import msi.gaml.statements.IExecutable;
+import msi.gaml.statements.IStatement;
 import msi.gaml.types.GamaGeometryType;
 import msi.gaml.types.IType;
 import msi.gaml.types.Types;
@@ -292,19 +294,29 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		if (dying || dead)
 			return;
 		dying = true;
+		DEBUG.SAVE_LOG();	//save all the logs in the log file
 
 		/*
 		 * LOGGING: WORLD values
 		 */
-		SimulationAgent sa = getScope().getSimulation();
-		IMap<String,Object> goca = sa.getOrCreateAttributes();	//returns the attributes of the world
-		//String log = "SIMULATION_NAME,"+sa.getName();
-		String log = "EXPERIMENT_PARAMS";
-		for(String k : goca.getKeys()) {
-			String val = (goca.get(k) == null)?"null":(goca.get(k).toString().replace("\\s+", "")).replace("\n", "");
-			log = log + ",KEY,"+k+",VALUE,"+val.replace(",", ";");
+		DEBUG.ADD_LOG("EXPERIMENT_PARAMS");
+		
+		Map<String, ISpecies> all_species = getModel().getAllSpecies();
+		
+		for(ISpecies a : all_species.values()) {
+			DEBUG.ADD_LOG("SPECIES NAME: "+a.getName());
+			DEBUG.ADD_LOG("VARIABLES: "+a.getVarNames());
+			DEBUG.ADD_LOG("ACTIONS: "+a.getActionNames(getScope()));
+			
+			Iterator<IStatement> reflex = (a.getBehaviors()).iterator();
+			String log = "BEHAVIOR: ";
+			while(reflex.hasNext()) {
+				IStatement r = reflex.next();
+				log = log +";"+ r.getName();
+			}
+			DEBUG.ADD_LOG(log);
 		}
-		DEBUG.LOG(log);
+		
 		DEBUG.LOG("Saving the logs to CSV file...");
 		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		

@@ -407,7 +407,7 @@ public class DEBUG {
 	
 	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
-		fileName = "/Users/admin/Desktop/visualization_experiments/"+file_number+"_itp.csv";
+		fileName = "/Users/admin/Desktop/visualization_experiments/trials/"+file_number+".csv";
 		try {
 			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"});
 			for(String[] s : DEBUG.DATA_LINES) {
