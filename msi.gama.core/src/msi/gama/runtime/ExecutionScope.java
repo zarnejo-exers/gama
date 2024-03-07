@@ -586,8 +586,9 @@ public class ExecutionScope implements IScope {
 			for(String v : temp_vars.keySet()) {
 				if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
 					String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
+					//DEBUG.LOG("SAVED: "+temp_vars.get(v)+" prev_agent: "+previous_agent.getDirectVarValue(exec, v));
 					//DEBUG.LOG("ID,"+exec.getLogID()+",VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
-					DEBUG.ADD_LOG(exec.getLogID()+";[variable]"+v+"."+previous_agent.getSpeciesName()+";"+(new Timestamp(System.currentTimeMillis()))+";"+val.replace(",", " ")+";"+previous_agent.getSpeciesName());
+					DEBUG.ADD_VLOG(exec.getLogID()+";[variable]"+v+"."+previous_agent.getSpeciesName()+";"+(new Timestamp(System.currentTimeMillis()))+";"+val.replace(",", " ")+";"+previous_agent.getSpeciesName());
 				}
 			}
 			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());

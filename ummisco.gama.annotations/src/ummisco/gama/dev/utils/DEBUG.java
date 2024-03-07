@@ -71,7 +71,8 @@ public class DEBUG {
 	/** The Constant stackWalker. */
 	static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
 	
-	private static final List<String[]> DATA_LINES = new ArrayList<>();
+	private static final List<String[]> VAR_LINES = new ArrayList<>();
+	private static final List<String[]> ACT_LINES = new ArrayList<>();
 	
 	/** The first column. */
 	protected static boolean firstColumn = true;
@@ -79,6 +80,7 @@ public class DEBUG {
 	private static Writer outputStream = null;
 	
 	private static String fileName = null;
+	private static String fileVName = null;
 	
 	private static int file_number = 0;
 
@@ -401,19 +403,33 @@ public class DEBUG {
 	
 	public static void ADD_LOG(final Object string) {
 		if(ENABLE_LOGGING) {
-			DEBUG.DATA_LINES.add(new String[] {STRINGS.TO_STRING(string)});
+			DEBUG.ACT_LINES.add(new String[] {STRINGS.TO_STRING(string)});
+		}
+	}
+	
+	public static void ADD_VLOG(final Object string) {
+		if(ENABLE_LOGGING) {
+			DEBUG.VAR_LINES.add(new String[] {STRINGS.TO_STRING(string)});
 		}
 	}
 	
 	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
-		fileName = "/Users/admin/Desktop/visualization_experiments/trials/"+file_number+".csv";
 		try {
-			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"});
-			for(String[] s : DEBUG.DATA_LINES) {
-				DEBUG.writeRecord(s);
+			fileName = "/Users/admin/Desktop/visualization_experiments/trials/LLG/act_"+file_number+".csv";
+			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, false);
+			for(String[] s : DEBUG.ACT_LINES) {
+				DEBUG.writeRecord(s, false);
 			}
-			DEBUG.DATA_LINES.clear();
+			DEBUG.ACT_LINES.clear();
+			DEBUG.close();
+			
+			fileVName = "/Users/admin/Desktop/visualization_experiments/trials/LLG/var_"+file_number+".csv";
+			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, true);
+			for(String[] s : DEBUG.VAR_LINES) {
+				DEBUG.writeRecord(s, true);
+			}
+			DEBUG.VAR_LINES.clear();
 			DEBUG.close();
         } catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -432,24 +448,24 @@ public class DEBUG {
 	 * @exception IOException
 	 *                Thrown if an error occurs while writing data to the destination stream.
 	 */
-	public static void write(final String c) throws IOException {
+	public static void write(final String c, boolean is_var) throws IOException {
 		String content = c;
-		checkInit();
+		checkInit(is_var);
 		if (content == null) { content = ""; }
 		if (!firstColumn) { outputStream.write(";"); }
 		outputStream.write(content);
 		firstColumn = false;
 	}
 	
-	public static void writeRecord(final String[] values) throws IOException {
+	public static void writeRecord(final String[] values, boolean is_var) throws IOException {
 		if (values != null && values.length > 0) {
-			for (final String value : values) { write(value);}
-			endRecord();
+			for (final String value : values) { write(value, is_var);}
+			endRecord(is_var);
 		}
 	}
 
-	public static void endRecord() throws IOException {
-		checkInit();
+	public static void endRecord(boolean is_var) throws IOException {
+		checkInit(is_var);
 		outputStream.write(System.lineSeparator());
 		firstColumn = true;
 	}
@@ -457,10 +473,13 @@ public class DEBUG {
 	/**
 	 *
 	 */
-	private static void checkInit() throws IOException {
-		if (outputStream == null && fileName != null) {
+	private static void checkInit(boolean is_var) throws IOException {
+		if (outputStream == null && fileName != null && !is_var) {
 			outputStream = new BufferedWriter(
 					new OutputStreamWriter(new FileOutputStream(fileName), Charset.forName("UTF-8")));
+		}else if (outputStream == null && fileVName != null && is_var){
+			outputStream = new BufferedWriter(
+					new OutputStreamWriter(new FileOutputStream(fileVName), Charset.forName("UTF-8")));
 		}
 	}
 	

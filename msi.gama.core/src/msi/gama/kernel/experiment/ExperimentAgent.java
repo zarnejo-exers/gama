@@ -294,6 +294,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		if (dying || dead)
 			return;
 		dying = true;
+		DEBUG.LOG("Saving file...");
 		DEBUG.SAVE_LOG();	//save all the logs in the log file
 
 		/*
