@@ -44,6 +44,10 @@ global {
 	geometry shape <- square(gridsize);
 	image_file terrain <- image_file("../images/soil.jpg");
 	matrix<float> grid_values <- matrix<float>(as_matrix(terrain, {gridsize, gridsize}));
+	
+	int route_count <- 0;
+	int ordered_ant <- 0;
+	int chaotic_ant <- 0; 
 
 	init {
 
@@ -78,7 +82,20 @@ global {
 	//Reflex to diffuse the pheromon among the grid
 	reflex diffuse {
 		diffuse var: road on: ant_grid proportion: diffusion_rate radius: 3 propagation: gradient method: convolution;
-	} }
+	}
+	
+	reflex observe_emergence{	//# of roads formed from food source to nest
+		list<ant_grid> a_grid <- ant_grid where (each.road > 30.0 and !each.is_nest);	//remove all the nest to get disjoint graph
+		
+		if(a_grid != []){
+			graph my_graph <- grid_cells_to_graph(a_grid);
+			list<list> con_comp <- connected_components_of(my_graph, false);	
+			route_count <- length(con_comp);
+			ordered_ant <- length(ant where (each.state = "followingRoad"));
+			chaotic_ant <- length(ant where (each.state != "followingRoad"));
+		}
+	} 
+}
 
 	//Grid used to discretize the space to place food
 grid ant_grid width: gridsize height: gridsize neighbors: 8 frequency: grid_frequency use_regular_agents: false use_individual_shapes: false {
@@ -92,6 +109,7 @@ grid ant_grid width: gridsize height: gridsize neighbors: 8 frequency: grid_freq
 species ant skills: [moving] control: fsm {
 	float speed <- 1.0;
 	bool has_food <- false;
+	rgb color <- #red;
 
 	//Reflex to place a pheromon stock in the cell
 	reflex diffuse_road when: has_food = true {
@@ -177,7 +195,12 @@ species ant skills: [moving] control: fsm {
 
 	aspect icon_svg {
 		draw ant_shape_svg size: {5, 7} rotate: my heading + 270 color: #black;
-	} }
+	}
+	
+	aspect default{
+		draw triangle(2) color: color;
+	}
+}
 
 	//Complete experiment that will inspect all ants in a table
 experiment "With Inspector" type: gui {
@@ -215,12 +238,17 @@ experiment "Classic" type: gui {
 
 	
 	output {
+		monitor "# of Routes" value: route_count refresh: every(1#cycle);
+		monitor "# of Chaotic Ants" value: chaotic_ant refresh: every(1#cycle);
+		monitor "# of Ordered Ants" value: ordered_ant refresh: every(1#cycle);
+		
 		display Ants antialias: false type: 3d {
 			light #ambient intensity: 127;
 			light #default intensity: 127;
 			image terrain refresh: false;
 			agents "Grid" transparency: 0.4 value: ant_grid where ((each.food > 0) or (each.road > 0) or (each.is_nest));
-			species ant aspect: info;
+			//species ant aspect: info;
+			species ant;
 		}
 
 	}
@@ -257,7 +285,6 @@ experiment "3 Simulations" type: gui {
 		create ants_model with: [ants_number::10, evaporation_per_cycle::72, diffusion_rate::0.6];
 	}
 
-
 	permanent {
 		display Comparison background: #white {
 			chart "Food Gathered" type: series {
@@ -283,7 +310,12 @@ experiment "3 Simulations" type: gui {
 
 }
 
-
-
+experiment Sobol type: batch keep_seed:true until:( cycle > 100) {
+    parameter "Evaporation per cycle:" var: evaporation_per_cycle min: 0.0 max: 240.0; 
+    parameter "Diffusion rate: " var: diffusion_rate min: float (0) max: float (1);
+    parameter "Number of food places:" var: number_of_food_places max: 10 min: 1;
+     
+    method sobol outputs:["route_count", "ordered_ant", "chaotic_ant"] sample:5 report:"sobol_100_5.txt" results:"sobol_raw_100_5.csv";
+}
 
 

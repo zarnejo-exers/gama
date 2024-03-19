@@ -37,6 +37,13 @@ global torus: torus_environment{
 	int xmax <- (width_and_height_of_environment - bounds);     
 	int ymax <- (width_and_height_of_environment - bounds);   
 	
+	
+	int reunited_count <- 0;
+	int split_count <- 0;
+	
+	bool reunited <- false;
+	bool split <- true;
+	
 	//Action to move the goal to the mouse location
 	action move_goal {
 		ask first(boids_goal) {
@@ -58,6 +65,30 @@ global torus: torus_environment{
 		//Create the goal that boids will follow
 		create  boids_goal;	
 	}	
+	
+	reflex observe_emergence{
+		int pop_size <- length(boids.population);
+		list<list<boids>> boids_group <- (boids.population simple_clustering_by_distance 100) where ((length(each)) = pop_size);
+		write "Boids group: "+length(boids_group);
+		int boids_groupC <- length(boids_group);
+		
+		loop j over: boids_group{
+			rgb var0 <- rnd_color(255);
+			loop x over: j{
+				x.color <- var0;
+			}
+		}
+		
+		if(split and boids_groupC = 1){
+			reunited <- true;
+			split <- false;
+			reunited_count <- reunited_count + 1;
+		}else if(reunited and boids_groupC != 1){
+			split <- true;
+			reunited <- false;
+			split_count <- split_count + 1;
+		}
+	}
 }
 
 //Species boids goal which represents the goal that will be followed by boids agents using the skill moving
@@ -76,6 +107,7 @@ species boids_goal skills: [moving] {
 } 
 //Species boids which represents the boids agents whom follow the boid goal agents, using the skill moving
 species boids skills: [moving] {
+	rgb color <- #darkblue;
 	//Speed of the boids agents
 	float speed max: maximal_speed <- maximal_speed;
 	//Range used to consider the group of the agent
@@ -180,7 +212,7 @@ species boids skills: [moving] {
 	}
 	
 	aspect default { 
-		draw circle(20) color: #lightblue wireframe: true;
+		draw triangle(20) color: color wireframe: true;
 	}
 } 
 
@@ -230,9 +262,12 @@ experiment "Basic" type: gui {
 	float minimum_cycle_duration <- 0.01;
 
 	output synchronized: true {
+		monitor "# of Split" value: split_count refresh: every(1#cycle);
+		monitor "# of Reunited" value: reunited_count refresh: every(1#cycle);
+		
 		display Sky type: 3d axes:false{ 
-			image '../images/sky.jpg' refresh: false;
-			species boids aspect: image;
+			//image '../images/sky.jpg' refresh: false;
+			species boids aspect: default;// aspect: image;
 			species boids_goal;
 			species obstacle;
 		}
@@ -284,4 +319,12 @@ experiment "Interactive" type: gui autorun: true{
 	}
 }
 
-
+experiment Sobol type: batch keep_seed:true until:( cycle > 100) {
+    parameter "# of obstacles:" var: number_of_obstacles min: 0 max: 5; 
+    parameter "Maximal speed:" var: maximal_speed min: 0.1 max: 15.0;
+    parameter "Cohesion factor:" var: cohesion_factor min: 150 max: 250 step: 50;
+    parameter "Alignment factor:" var: alignment_factor min: 50 max: 150 step: 50;
+    parameter "Minimal distance:" var: minimal_distance min: 15.0 max: 45.0 step: 15.0;
+     
+    method sobol outputs:["reunited_count", "split_count"] sample:5 report:"sobol_100_5.txt" results:"sobol_raw_100_5.csv";
+}

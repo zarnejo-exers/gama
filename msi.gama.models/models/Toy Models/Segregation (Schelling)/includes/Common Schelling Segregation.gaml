@@ -34,7 +34,11 @@ global {
 	//List of all the places
 	list<agent> all_places;
 	//List of all the people
-	list<base> all_people;  
+	list<base> all_people; 
+	
+	int cluster_count;
+	int largest_cluster_size;
+	int smallest_cluster_size;
 	
 	//Action to write the description of the model in the console
 	action description {
