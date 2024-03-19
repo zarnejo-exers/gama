@@ -402,9 +402,9 @@ public class DEBUG {
 	 */
 	
 	public static void ADD_LOG(final Object string) {
-		if(ENABLE_LOGGING) {
-			DEBUG.ACT_LINES.add(new String[] {STRINGS.TO_STRING(string)});
-		}
+//		if(ENABLE_LOGGING) {
+//			DEBUG.ACT_LINES.add(new String[] {STRINGS.TO_STRING(string)});
+//		}
 	}
 	
 	public static void ADD_VLOG(final Object string) {
@@ -416,15 +416,15 @@ public class DEBUG {
 	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
 		try {
-			fileName = "/Users/admin/Desktop/visualization_experiments/trials/LLG/act_"+file_number+".csv";
-			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, false);
-			for(String[] s : DEBUG.ACT_LINES) {
-				DEBUG.writeRecord(s, false);
-			}
-			DEBUG.ACT_LINES.clear();
-			DEBUG.close();
+//			fileName = "/Users/admin/Desktop/visualization_experiments/trials/BOIDS/act_"+file_number+".csv";
+//			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, false);
+//			for(String[] s : DEBUG.ACT_LINES) {
+//				DEBUG.writeRecord(s, false);
+//			}
+//			DEBUG.ACT_LINES.clear();
+//			DEBUG.close();
 			
-			fileVName = "/Users/admin/Desktop/visualization_experiments/trials/LLG/var_"+file_number+".csv";
+			fileVName = "/Users/admin/Desktop/visualization_experiments/trials/ANT_FORAGING/ant_foraging_sobol_withparam_"+file_number+".csv";
 			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, true);
 			for(String[] s : DEBUG.VAR_LINES) {
 				DEBUG.writeRecord(s, true);

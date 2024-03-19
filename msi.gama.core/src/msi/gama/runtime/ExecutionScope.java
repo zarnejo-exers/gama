@@ -18,6 +18,7 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import msi.gama.common.interfaces.IGui;
@@ -26,6 +27,7 @@ import msi.gama.common.util.RandomUtils;
 import msi.gama.kernel.experiment.IExperimentAgent;
 import msi.gama.kernel.experiment.IExperimentController;
 import msi.gama.kernel.experiment.IExperimentPlan;
+import msi.gama.kernel.experiment.IParameter;
 import msi.gama.kernel.experiment.ITopLevelAgent;
 import msi.gama.kernel.model.IModel;
 import msi.gama.kernel.simulation.SimulationAgent;
@@ -578,7 +580,6 @@ public class ExecutionScope implements IScope {
 	
 	@Override
 	public void logLastVarChange(IScope exec, boolean is_end) {
-		
 		String end = (is_end)?",END_STEP,":",END_EXECUTION,";
 		
 		if(previous_agent != null) {

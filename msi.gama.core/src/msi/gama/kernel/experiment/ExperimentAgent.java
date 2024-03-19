@@ -10,8 +10,10 @@
  ********************************************************************************************************/
 package msi.gama.kernel.experiment;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -153,6 +155,8 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 
 	/** The default population factory for this kind of experiment. */
 	private IPopulationFactory populationFactory;
+	
+	Map<String, String> prev_params = new HashMap<String, String>(); 	//name,value
 
 	/**
 	 * Instantiates a new experiment agent.
@@ -316,6 +320,8 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 			}
 			DEBUG.ADD_LOG(log);
 		}
+		
+		
 		
 		DEBUG.LOG("Saving the logs to CSV file...");
 		DEBUG.SAVE_LOG();	//save all the logs in the log file
@@ -903,6 +909,30 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 
 	@Override
 	protected boolean preStep(final IScope scope) {
+		Iterator<IExperimentPlan> exp = (getModel().getExperiments()).iterator();
+		while(exp.hasNext()) {
+			IExperimentPlan e = exp.next();
+			Map<String, Batch> e_param_b = e.getExplorableParameters();
+			
+			for(String p: e_param_b.keySet()) {
+				Batch param = e_param_b.get(p);
+
+				String prev_param_value  = (prev_params!=null)?prev_params.get(param.getName()):null;
+				
+				if(prev_param_value != null && (param.value(scope).toString()).compareToIgnoreCase(prev_param_value)!=0) {
+					DEBUG.ADD_VLOG(scope.getLogID()+";[parameter]"+param.getName()+".world"+";"+(new Timestamp(System.currentTimeMillis()))+";"+param.value(scope)+";world");
+					DEBUG.LOG("VALUE CHANGED!");
+				}else {
+					DEBUG.LOG("VALUE NOT CHANGED!");
+				}
+				if(prev_params != null) {
+					DEBUG.LOG("BEFORE PARAM: "+param.getName()+" VALUE: "+prev_param_value);
+				}
+				prev_params.put(param.getName(), param.value(scope).toString());
+				DEBUG.LOG("NOW PARAM: "+param.getName()+" VALUE: "+param.value(scope));
+			}
+		}
+		
 		ownClock.beginCycle();
 		executer.executeBeginActions();
 		return super.preStep(scope);
@@ -911,8 +941,8 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	@Override
 	protected void postStep(final IScope scope) {
 		
-		DEBUG.LOG("Saving file...");
-		DEBUG.SAVE_LOG();	//save all the logs in the log file
+//		DEBUG.LOG("Saving file...");
+//		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		
 		// super.postStep(scope);
 		executer.executeEndActions();
