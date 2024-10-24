@@ -15,11 +15,15 @@ import static msi.gama.runtime.ExecutionResult.PASSED;
 import static msi.gama.runtime.ExecutionResult.withValue;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 import msi.gama.common.interfaces.IGui;
 import msi.gama.common.interfaces.IStepable;
@@ -531,19 +535,21 @@ public class ExecutionScope implements IScope {
 			}
 			
 			if(b) {	//beginning of a method	
-				//write the variables that changed during the execution of the recent method
 				if(!temp_vars.isEmpty()) {	//the last executed statement is the last for the current method, log everything
-					logLastVarChange(previous_scope, false);
+					logLastVarChange(previous_scope, log);
+				}else {	//Case 1: only the behavior changed, no variable change  
+					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
 				}
-				
-				//DEBUG.LOG("ID,"+exec.getLogID()+",START_EXECUTION,"+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+caller.getSpeciesName()+",AGENT_EXECUTION,Agent_Name,"+caller.getName()+","+log);			//log the details of the executing agent
-				DEBUG.ADD_LOG(exec.getLogID()+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";"+caller.getName()+";"+caller.getSpeciesName());
 				
 				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
 					temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
 				}
 				previous_agent = caller;
 				previous_scope = exec;
+			}else {	//Check if the vars changed 
+				if(!temp_vars.isEmpty()) {	//Case 2: Only the variable changed but not the fxn
+					logLastVarChange(previous_scope, "nil");
+				}
 			}
 			
 			// Otherwise we compute the result of the statement, pushing the
@@ -579,23 +585,35 @@ public class ExecutionScope implements IScope {
 	}
 	
 	@Override
-	public void logLastVarChange(IScope exec, boolean is_end) {
-		String end = (is_end)?",END_STEP,":",END_EXECUTION,";
-		
+	public void logLastVarChange(IScope exec, String fxn_log) {
+
 		if(previous_agent != null) {
 			//log the variables of the recently finished method before logging the details of the
 			for(String v : temp_vars.keySet()) {
 				if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
-					String val = (temp_vars.get(v) == null)?"null":temp_vars.get(v).toString();
-					//DEBUG.LOG("SAVED: "+temp_vars.get(v)+" prev_agent: "+previous_agent.getDirectVarValue(exec, v));
-					//DEBUG.LOG("ID,"+exec.getLogID()+",VARIABLE_CHANGE,Name,"+v+",Type,"+previous_agent.getSpecies().getVar(v).getType()+",Previous_Value,"+val.replace(",", ";")+",Agent_Value,"+previous_agent.getDirectVarValue(exec, v).toString().replace(",", ";"));
-					DEBUG.ADD_VLOG(exec.getLogID()+";[variable]"+v+"."+previous_agent.getSpeciesName()+";"+(new Timestamp(System.currentTimeMillis()))+";"+val.replace(",", " ")+";"+previous_agent.getSpeciesName());
+					
+					String var_val = null;
+					if(temp_vars.get(v) == null) {	//variable have, as a value, nil
+						var_val = "nil";
+					}else {
+						if(temp_vars.get(v) instanceof List<?>){//the value is a List, store only the size of the List, value of the variable is a list 
+							int list_size = (new ArrayList<>((Collection<?>)temp_vars.get(v))).size();
+							var_val = ""+(list_size+1);
+						}else {
+							var_val = temp_vars.get(v).toString();
+						}
+					}
+					
+					//Case 3: both variable and behavior changed
+					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+previous_agent.getName());
+					//}
 				}
 			}
 			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
 			previous_agent = null;
 		}else {
-			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",NO_ACTION_BEHAVIOR");
+			//Case 1: only the behavior changed, no variable change
+			DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
 		}
 		
 		temp_vars.clear();

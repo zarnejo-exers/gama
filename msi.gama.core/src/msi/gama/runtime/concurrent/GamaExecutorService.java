@@ -318,7 +318,7 @@ public abstract class GamaExecutorService {
 		}
 		
 		if(array.length > 0) {
-			scope.logLastVarChange(scope, true);
+			scope.logLastVarChange(scope, "");
 			scope.incrementLogID();
 		}
 		

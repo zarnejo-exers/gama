@@ -921,7 +921,7 @@ public interface IScope extends Closeable, IBenchmarkable {
 	 */
 	IPopulationFactory getPopulationFactory();
 	
-	default void logLastVarChange(IScope exec, boolean is_end) {}
+	default void logLastVarChange(IScope exec, String fxn_log) {}
 	int getLogID();
 	void incrementLogID();
 

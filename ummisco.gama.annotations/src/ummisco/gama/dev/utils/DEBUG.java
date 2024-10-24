@@ -24,7 +24,9 @@ import java.io.Writer;
 import java.lang.StackWalker.StackFrame;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -54,6 +56,9 @@ public class DEBUG {
 		}
 
 	}
+	
+	public static int var_counter = 0;
+	public static int act_counter = 0;
 
 	/** The Constant SECURITY_MANAGER. */
 	private final static MySecurityManager SECURITY_MANAGER = new MySecurityManager();
@@ -83,6 +88,8 @@ public class DEBUG {
 	private static String fileVName = null;
 	
 	private static int file_number = 0;
+	
+	public Map<String, List<Integer>> var = new HashMap<>();
 
 	/**
 	 * Uses a custom security manager to get the caller class name. Use of reflection would be faster, but more prone to
@@ -105,7 +112,7 @@ public class DEBUG {
 		final String s = findCallingClassName();
 		if (REGISTERED.containsKey(s) && COUNTERS.containsKey(s)) { COUNTERS.put(s, -1); }
 	}
-
+	
 	/**
 	 * The Interface RunnableWithException.
 	 *
@@ -255,7 +262,7 @@ public class DEBUG {
 	 * @param string
 	 */
 	public static void LOG(final Object string) {
-		if (ENABLE_LOGGING) { LOG(string, true); }
+//		if (ENABLE_LOGGING) { LOG(string, true); }
 	}
 
 	/**
@@ -402,9 +409,9 @@ public class DEBUG {
 	 */
 	
 	public static void ADD_LOG(final Object string) {
-//		if(ENABLE_LOGGING) {
-//			DEBUG.ACT_LINES.add(new String[] {STRINGS.TO_STRING(string)});
-//		}
+		if(ENABLE_LOGGING) {
+			DEBUG.ACT_LINES.add(new String[] {STRINGS.TO_STRING(string)});
+		}
 	}
 	
 	public static void ADD_VLOG(final Object string) {
@@ -413,18 +420,29 @@ public class DEBUG {
 		}
 	}
 	
+	public static int AccessVarCounter() {
+		var_counter = var_counter + 1;
+		return var_counter;
+	}
+	
+	public static int AccessActCounter() {
+		act_counter = act_counter + 1;
+		return act_counter;
+	}	
+	
 	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
 		try {
-//			fileName = "/Users/admin/Desktop/visualization_experiments/trials/BOIDS/act_"+file_number+".csv";
-//			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, false);
-//			for(String[] s : DEBUG.ACT_LINES) {
-//				DEBUG.writeRecord(s, false);
-//			}
-//			DEBUG.ACT_LINES.clear();
-//			DEBUG.close();
+			System.out.println("Writing here test");
+			fileName = "/Users/admin/Desktop/updated_visualizatoin/viz/separate_act_"+file_number+".csv";
+			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, false);
+			for(String[] s : DEBUG.ACT_LINES) {
+				DEBUG.writeRecord(s, false);
+			}
+			DEBUG.ACT_LINES.clear();
+			DEBUG.close();
 			
-			fileVName = "/Users/admin/Desktop/visualization_experiments/trials/ANT_FORAGING/ant_foraging_sobol_withparam_"+file_number+".csv";
+			fileVName = "/Users/admin/Desktop/updated_visualizatoin/viz/separate_var_"+file_number+".csv";
 			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, true);
 			for(String[] s : DEBUG.VAR_LINES) {
 				DEBUG.writeRecord(s, true);
@@ -436,6 +454,8 @@ public class DEBUG {
 			e.printStackTrace();
 		}
 		file_number++;
+		var_counter = 0;
+		act_counter = 0;
 	}
 	
 	/**

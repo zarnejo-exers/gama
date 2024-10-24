@@ -114,7 +114,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	public static final String MINIMUM_CYCLE_DURATION = "minimum_cycle_duration";
 
 	/** The Constant MAXIMUM_CYCLE_DURATION. */
-	private static final String MAXIMUM_CYCLE_DURATION = "maximum_cycle_duration";
+	public static final String MAXIMUM_CYCLE_DURATION = "maximum_cycle_duration";
 
 	/** The own scope. */
 	private final IScope ownScope;
@@ -305,26 +305,26 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		 * LOGGING: WORLD values
 		 */
 		
-		Map<String, ISpecies> all_species = getModel().getAllSpecies();
+//		Map<String, ISpecies> all_species = getModel().getAllSpecies();
+//		
+//		for(ISpecies a : all_species.values()) {
+//			DEBUG.ADD_LOG("SPECIES NAME:,"+a.getName());
+//			DEBUG.ADD_LOG("VARIABLES:,"+a.getVarNames());
+//			DEBUG.ADD_LOG("ACTIONS:,"+a.getActionNames(getScope()));
+//			
+//			Iterator<IStatement> reflex = (a.getBehaviors()).iterator();
+//			String log = "BEHAVIOR:";
+//			while(reflex.hasNext()) {
+//				IStatement r = reflex.next();
+//				log = log +","+ r.getName();
+//			}
+//			DEBUG.ADD_LOG(log);
+//		}
+//		
 		
-		for(ISpecies a : all_species.values()) {
-			DEBUG.ADD_LOG("SPECIES NAME:,"+a.getName());
-			DEBUG.ADD_LOG("VARIABLES:,"+a.getVarNames());
-			DEBUG.ADD_LOG("ACTIONS:,"+a.getActionNames(getScope()));
-			
-			Iterator<IStatement> reflex = (a.getBehaviors()).iterator();
-			String log = "BEHAVIOR:";
-			while(reflex.hasNext()) {
-				IStatement r = reflex.next();
-				log = log +","+ r.getName();
-			}
-			DEBUG.ADD_LOG(log);
-		}
 		
-		
-		
-		DEBUG.LOG("Saving the logs to CSV file...");
-		DEBUG.SAVE_LOG();	//save all the logs in the log file
+//		DEBUG.LOG("Saving the logs to CSV file...");
+//		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		
 		getSpecies().getArchitecture().abort(ownScope);
 		closeSimulations();
@@ -440,63 +440,7 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	public IModel getModel() {
 		return getSpecies().getModel();
 	}
-
-//	DEBUG.LOG("\nSTART getExperiment");
-//	
-//	SimulationAgent sa = getSimulation();
-//	
-//	/*
-//	 * WORLD values
-//	 */
-//	DEBUG.LOG("MACRO_AGENTS: "+sa.getMacroAgents());	//returns experiment name
-//	DEBUG.LOG("SPECIES: "+sa.getSpecies().toString());	//returns world name
-//	IMap<String,Object> goca = sa.getOrCreateAttributes();	//returns the attributes of the world
-//	DEBUG.LOG("ATTRIBUTES: "+goca.getKeys());
-//	DEBUG.LOG("ATTRIBUTES: "+goca.getValues());
-//	
-//	/*
-//	 * AGENT values
-//	 */
-//	IList<IAgent> exp_agents = sa.getAgents(getScope());
-//	DEBUG.LOG("AGENT count: "+exp_agents.size());
-//	DEBUG.LOG("ACTIONS: "+exp_agents.get(0).getSpecies().getActionNames(getScope()));
-//	Collection<IStatement> gb = exp_agents.get(0).getSpecies().getBehaviors();
-//	for(IStatement g : gb) {
-//		DEBUG.LOG("BEHAVIORS: "+g.getName()+" "+g.getKeyword());
-//	}
-//	
-//	DEBUG.LOG("SPECIES: "+ exp_agents.get(0).getSpeciesName());
-//	IMap<String,Object> e_goca = exp_agents.get(0).getOrCreateAttributes();	//returns the attributes of the world
-//	DEBUG.LOG("ATTRIBUTES: "+e_goca.getKeys());
-//	DEBUG.LOG("VALUE: "+e_goca.getValues());
-//	DEBUG.LOG("TYPE: "+exp_agents.get(0).getGamlType());
-//	
-//	//try sorting the agents according to species
-//	/*
-//	 * Map<String, List<Student>> studlistGrouped =
-//		studlist.stream().collect(Collectors.groupingBy(w -> w.stud_location));
-//	 */
-//	
-//	Map<ISpecies, List<IAgent>> agentSpeciesGrouped = exp_agents.stream().collect(Collectors.groupingBy(w -> w.getSpecies()));
-//	//Idea: I'll go to the level of the species, and get all the methods that are under it
-//	//then, save statistically the value of the variables of agents (mean, median, ...)
-//	for(ISpecies s: agentSpeciesGrouped.keySet()) {
-//		DEBUG.LOG("KEY: "+s.getName());
-//		DEBUG.LOG("INSTANCES: "+agentSpeciesGrouped.get(s).size());
-//		
-//		SpeciesDescription sd = s.getDescription();
-//		DEBUG.LOG("BEHAVIORS: "+sd.getBehaviorNames());
-//		DEBUG.LOG("ACTIONS: "+sd.getActionNames());
-//	}
-//	
-//	/*
-//	 * To LOG: 
-//	 *  ATTRIBUTES: - Parameter Values, variables in conditional statements related to activation of behavior
-//	 *  BEHAVIOR: - States, if there are 
-//	 *            - functions, actions, reflex
-//	 */
-//	
-//	DEBUG.LOG("END getExperiment\n");
+	
 	@Override
 	public IExperimentAgent getExperiment() {
 		return this;
@@ -797,49 +741,6 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 		getRandomGenerator().setGenerator(newRng, true);
 	}
 
-	/*
-	 * 		if (p != null) {
-			Collection<ActionStatement> as = p.getSpecies().getActions();
-			Iterator<ActionStatement> iterator = as.iterator();
-
-			// while loop
-			// DEBUG.LOG("Own Actions"); //action
-			while (iterator.hasNext()) {
-				ActionStatement i = iterator.next();
-				if (i.getKeyword().compareTo("action") == 0) {
-					DEBUG.ADD_LOG("Keyword;" + i.getKeyword());
-					ActionDescription ad = (ActionDescription) i.getDescription();
-					if (ad != null) {
-						DEBUG.ADD_LOG("Name;" + ad.getName()); // hireHarvester
-						DEBUG.ADD_LOG("Enclosing;" + ad.getOriginName()); // enclosing code?
-						Iterable<IDescription> args_ = ad.getFormalArgs();
-						for (IDescription a : args_) {
-							DEBUG.ADD_LOG("Formal Args;" + a.getName() + ";" + a.getGamlType());
-						}
-					}
-					DEBUG.ADD_LOG("Commands;");
-					IStatement[] comms = i.getCommands();
-					for (IStatement i_comms : comms) {
-						DEBUG.ADD_LOG(";" + i_comms);
-					}
-				}
-			}
-
-			Collection<IStatement> ab = p.getSpecies().getBehaviors();
-			Iterator<IStatement> i_ = ab.iterator();
-
-			// DEBUG.LOG("Own Behaviors");
-			while (i_.hasNext()) {
-				IStatement i = i_.next();
-
-				if (i.getKeyword().compareTo("reflex") == 0) {
-					DEBUG.ADD_LOG("Name;" + i.getName());
-					DEBUG.ADD_LOG("Keyword;" + i.getKeyword());
-					DEBUG.ADD_LOG("Enclosing;" + i.getDescription().getOriginName());
-				}
-			}
-		}
-	 */
 	@Override
 	public SimulationPopulation getSimulationPopulation() {
 		SimulationPopulation p = (SimulationPopulation) getMicroPopulation(getModel());
@@ -920,16 +821,20 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 				String prev_param_value  = (prev_params!=null)?prev_params.get(param.getName()):null;
 				
 				if(prev_param_value != null && (param.value(scope).toString()).compareToIgnoreCase(prev_param_value)!=0) {
-					DEBUG.ADD_VLOG(scope.getLogID()+";[parameter]"+param.getName()+".world"+";"+(new Timestamp(System.currentTimeMillis()))+";"+param.value(scope)+";world");
-					DEBUG.LOG("VALUE CHANGED!");
+//                    DEBUG.LOG("scope cycle: " + scope.getSimulation().getCycle(scope));
+//                    DEBUG.LOG("scope clock: " + scope.getSimulation().getClock());
+					if(scope.getSimulation().getCycle(scope) > 180) {
+						DEBUG.ADD_VLOG(scope.getSimulation().getCycle(scope)+";[parameter]"+param.getName()+".world"+";"+(new Timestamp(System.currentTimeMillis()))+";"+param.value(scope)+";world");
+					}
+//					DEBUG.LOG("VALUE CHANGED!");
 				}else {
-					DEBUG.LOG("VALUE NOT CHANGED!");
+//					DEBUG.LOG("VALUE NOT CHANGED!");
 				}
 				if(prev_params != null) {
-					DEBUG.LOG("BEFORE PARAM: "+param.getName()+" VALUE: "+prev_param_value);
+//					DEBUG.LOG("BEFORE PARAM: "+param.getName()+" VALUE: "+prev_param_value);
 				}
 				prev_params.put(param.getName(), param.value(scope).toString());
-				DEBUG.LOG("NOW PARAM: "+param.getName()+" VALUE: "+param.value(scope));
+//				DEBUG.LOG("NOW PARAM: "+param.getName()+" VALUE: "+param.value(scope));
 			}
 		}
 		
@@ -941,8 +846,8 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 	@Override
 	protected void postStep(final IScope scope) {
 		
-//		DEBUG.LOG("Saving file...");
-//		DEBUG.SAVE_LOG();	//save all the logs in the log file
+		DEBUG.LOG("Saving file...");
+		DEBUG.SAVE_LOG();	//save all the logs in the log file
 		
 		// super.postStep(scope);
 		executer.executeEndActions();
