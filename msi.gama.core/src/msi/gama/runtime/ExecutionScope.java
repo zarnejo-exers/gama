@@ -518,26 +518,22 @@ public class ExecutionScope implements IScope {
 			 * However, it can still be useful because here it can be checked which lines get executed and which does not
 			 * LOG before execution 
 			 */
-			String log = "";
+			String log = "nil";
 			Boolean b = false;
 			if(target.getSpecies().getBehaviors().contains(statement)) {
 				Collection<IStatement> beh = target.getSpecies().getBehaviors();
 				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				//log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
-				log = "[behavior]"+s.getName()+"."+target.getSpeciesName();	//activity
+				log = "[behavior]"+s.getName()+"."+target.getSpeciesName();	//activity: log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
 				b = true;
 			}else if(target.getSpecies().getActions().contains(statement)) {
 				Collection<ActionStatement> ceh = target.getSpecies().getActions();
 				ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				//log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
-				log = "[action]"+c.getName()+"."+target.getSpeciesName();	//activity
+				log = "[action]"+c.getName()+"."+target.getSpeciesName();	//activity: log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
 				b = true;
 			}
 			
-			if(b) {	//beginning of a method	
-				if(!temp_vars.isEmpty()) {	//the last executed statement is the last for the current method, log everything
-					logLastVarChange(previous_scope, log);
-				}else {	//Case 1: only the behavior changed, no variable change  
+			if(b) {	//beginning of a method
+				if(temp_vars.isEmpty()) { //Case 1: only the behavior changed, no variable change
 					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
 				}
 				
@@ -546,10 +542,10 @@ public class ExecutionScope implements IScope {
 				}
 				previous_agent = caller;
 				previous_scope = exec;
-			}else {	//Check if the vars changed 
-				if(!temp_vars.isEmpty()) {	//Case 2: Only the variable changed but not the fxn
-					logLastVarChange(previous_scope, "nil");
-				}
+			}
+			
+			if(!temp_vars.isEmpty()) { //Case 2: Both changed
+				logLastVarChange(previous_scope, log);
 			}
 			
 			// Otherwise we compute the result of the statement, pushing the
@@ -586,7 +582,6 @@ public class ExecutionScope implements IScope {
 	
 	@Override
 	public void logLastVarChange(IScope exec, String fxn_log) {
-
 		if(previous_agent != null) {
 			//log the variables of the recently finished method before logging the details of the
 			for(String v : temp_vars.keySet()) {
@@ -612,9 +607,6 @@ public class ExecutionScope implements IScope {
 			}
 			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
 			previous_agent = null;
-		}else {
-			//Case 1: only the behavior changed, no variable change
-			DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
 		}
 		
 		temp_vars.clear();
