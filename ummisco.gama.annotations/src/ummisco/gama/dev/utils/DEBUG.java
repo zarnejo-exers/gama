@@ -420,16 +420,6 @@ public class DEBUG {
 		}
 	}
 	
-	public static int AccessVarCounter() {
-		var_counter = var_counter + 1;
-		return var_counter;
-	}
-	
-	public static int AccessActCounter() {
-		act_counter = act_counter + 1;
-		return act_counter;
-	}	
-	
 	//writes all the log files into a CSV
 	public static void SAVE_LOG() {
 		try {
@@ -440,14 +430,6 @@ public class DEBUG {
 				DEBUG.writeRecord(s, false);
 			}
 			DEBUG.ACT_LINES.clear();
-			DEBUG.close();
-			
-			fileVName = "/Users/admin/Desktop/updated_visualizatoin/viz/separate_var_"+file_number+".csv";
-			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, true);
-			for(String[] s : DEBUG.VAR_LINES) {
-				DEBUG.writeRecord(s, true);
-			}
-			DEBUG.VAR_LINES.clear();
 			DEBUG.close();
         } catch (IOException e) {
 			// TODO Auto-generated catch block

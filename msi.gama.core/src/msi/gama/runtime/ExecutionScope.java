@@ -603,9 +603,10 @@ public class ExecutionScope implements IScope {
 							var_val = temp_vars.get(v).toString();
 						}
 					}
+					String var_details = v + "."+previous_agent.getSpeciesName();
 					
 					//Case 3: both variable and behavior changed
-					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+previous_agent.getName());
+					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
 					//}
 				}
 			}
