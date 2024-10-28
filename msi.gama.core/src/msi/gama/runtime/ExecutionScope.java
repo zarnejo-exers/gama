@@ -532,6 +532,10 @@ public class ExecutionScope implements IScope {
 				b = true;
 			}
 			
+			if(!temp_vars.isEmpty()) { //Case 2: Both changed
+				logLastVarChange(previous_scope, log);
+			}
+			
 			if(b) {	//beginning of a method
 				if(temp_vars.isEmpty()) { //Case 1: only the behavior changed, no variable change
 					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
@@ -542,10 +546,6 @@ public class ExecutionScope implements IScope {
 				}
 				previous_agent = caller;
 				previous_scope = exec;
-			}
-			
-			if(!temp_vars.isEmpty()) { //Case 2: Both changed
-				logLastVarChange(previous_scope, log);
 			}
 			
 			// Otherwise we compute the result of the statement, pushing the
@@ -582,6 +582,7 @@ public class ExecutionScope implements IScope {
 	
 	@Override
 	public void logLastVarChange(IScope exec, String fxn_log) {
+		
 		if(previous_agent != null) {
 			//log the variables of the recently finished method before logging the details of the
 			for(String v : temp_vars.keySet()) {
