@@ -532,13 +532,19 @@ public class ExecutionScope implements IScope {
 				b = true;
 			}
 			
-			if(!temp_vars.isEmpty()) { //Case 2: Both changed
+			if(!temp_vars.isEmpty()) { //Case 2 or 3: var changed, or both
 				logLastVarChange(previous_scope, log);
 			}
 			
 			if(b) {	//beginning of a method
 				if(temp_vars.isEmpty()) { //Case 1: only the behavior changed, no variable change
-					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
+					
+					if(exec.getSimulation() != null) {
+						DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
+					}else {
+						DEBUG.ADD_LOG("0;"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
+					}
+					
 				}
 				
 				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
@@ -592,17 +598,23 @@ public class ExecutionScope implements IScope {
 					if(temp_vars.get(v) == null) {	//variable have, as a value, nil
 						var_val = "nil";
 					}else {
-						if(temp_vars.get(v) instanceof List<?>){//the value is a List, store only the size of the List, value of the variable is a list 
-							int list_size = (new ArrayList<>((Collection<?>)temp_vars.get(v))).size();
+						if(temp_vars.get(v) instanceof Collection<?>){//the value is a List, store only the size of the List, value of the variable is a list 
+							int list_size = ((Collection<?>)temp_vars.get(v)).size();
 							var_val = ""+(list_size+1);
-						}else {
+						}else if((temp_vars.get(v) instanceof Integer) || (temp_vars.get(v) instanceof Float) || (temp_vars.get(v) instanceof Boolean) ||(temp_vars.get(v) instanceof Character) || (temp_vars.get(v) instanceof String)) {
 							var_val = temp_vars.get(v).toString();
+						}else {
+							var_val = "Complex data type";
 						}
 					}
-					String var_details = v + "."+previous_agent.getSpeciesName();
+					String var_details = "[Variable]"+v + "."+previous_agent.getSpeciesName();
 					
 					//Case 3: both variable and behavior changed
-					DEBUG.ADD_LOG(exec.getSimulation().getCycle(exec)+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+					if(exec.getSimulation() != null) {
+						DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+					}else {
+						DEBUG.ADD_LOG("0;"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+					}
 					//}
 				}
 			}

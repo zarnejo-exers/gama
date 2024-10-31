@@ -248,6 +248,9 @@ public class BatchAgent extends ExperimentAgent {
 	public boolean step(final IScope scope) {
 		// We run the exloration algorithm. The future steps will be called by the exploration algorithm through the
 		// launchSimulationsWithSolution() method
+		
+		System.out.println("BATCH executing at line 252 of BatchAgent.java found in msi.gama.kernel.experiment");
+		
 		getSpecies().getExplorationAlgorithm().run(scope);
 		// Once the algorithm has finished exploring the solutions, the agent is
 		// killed.
@@ -413,7 +416,7 @@ public class BatchAgent extends ExperimentAgent {
 		}
 
 		// At last, we update the parameters (last fitness and best fitness)
-		getScope().getGui().showAndUpdateParameterView(getScope(), getSpecies());
+		getScope().getGui().showAndUpdateParameterView(getScope(), getSpecies());		
 		return res;
 
 	}

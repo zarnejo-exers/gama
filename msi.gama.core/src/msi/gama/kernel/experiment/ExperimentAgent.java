@@ -823,8 +823,10 @@ public class ExperimentAgent extends GamlAgent implements IExperimentAgent {
 				if(prev_param_value != null && (param.value(scope).toString()).compareToIgnoreCase(prev_param_value)!=0) {
 //                    DEBUG.LOG("scope cycle: " + scope.getSimulation().getCycle(scope));
 //                    DEBUG.LOG("scope clock: " + scope.getSimulation().getClock());
-					if(scope.getSimulation().getCycle(scope) > 180) {
+					if(scope.getSimulation() != null) {
 						DEBUG.ADD_VLOG(scope.getSimulation().getCycle(scope)+";[parameter]"+param.getName()+".world"+";"+(new Timestamp(System.currentTimeMillis()))+";"+param.value(scope)+";world");
+					}else {
+						DEBUG.ADD_VLOG("BATCH"+";[parameter]"+param.getName()+".world"+";"+(new Timestamp(System.currentTimeMillis()))+";"+param.value(scope)+";world");
 					}
 //					DEBUG.LOG("VALUE CHANGED!");
 				}else {

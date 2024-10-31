@@ -194,8 +194,12 @@ public class Exploration extends AExplorationAlgorithm {
 
 	@Override
 	public void explore(final IScope scope) throws GamaRuntimeException {
+		
+		System.out.println("PRINTING Here!");
 
 		List<Batch> params = currentExperiment.getParametersToExplore();
+		
+		System.out.println("BATCH running on line 200 of program: Exploration.java inside msi.gama.kernel.batch.exploration");
 
 		parameters = parameters == null ? params : parameters;
 		List<ParametersSet> sets;
@@ -244,11 +248,18 @@ public class Exploration extends AExplorationAlgorithm {
 		};
 		if (sets.isEmpty()) { sets.add(new ParametersSet()); }
 		else if(sample_size == 132) {sample_size = sets.size();}
+		
 
 		if (GamaExecutorService.shouldRunAllSimulationsInParallel(currentExperiment)) {
+			System.out.println("BATCH running on line 252 of program: Exploration.java inside msi.gama.kernel.batch.exploration");
 			currentExperiment.launchSimulationsWithSolution(sets);
 		} else {
-			for (ParametersSet sol : sets) { currentExperiment.launchSimulationsWithSolution(sol); }
+			System.out.println("BATCH running on line 255 of program: Exploration.java inside msi.gama.kernel.batch.exploration");
+			for (ParametersSet sol : sets) { 
+				System.out.println("Parameters: "+sol.getPairs());
+				Map<String, List<Object>> outputs = currentExperiment.launchSimulationsWithSolution(sol);
+				System.out.println("Results: "+outputs);
+			}
 		}
 
 	}

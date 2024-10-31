@@ -11,6 +11,7 @@
 package msi.gama.kernel.batch.exploration.sobol;
 
 import java.io.File;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -20,6 +21,7 @@ import java.util.Map;
 import msi.gama.common.interfaces.IKeyword;
 import msi.gama.common.util.FileUtils;
 import msi.gama.kernel.batch.exploration.AExplorationAlgorithm;
+import msi.gama.kernel.batch.optimization.AOptimizationAlgorithm;
 import msi.gama.kernel.experiment.BatchAgent;
 import msi.gama.kernel.experiment.IParameter.Batch;
 import msi.gama.kernel.experiment.ParameterAdapter;
@@ -41,9 +43,11 @@ import msi.gama.util.IList;
 import msi.gama.util.IMap;
 import msi.gaml.compilation.ISymbol;
 import msi.gaml.descriptions.IDescription;
+import msi.gaml.expressions.IExpression;
 import msi.gaml.operators.Cast;
 import msi.gaml.types.GamaDateType;
 import msi.gaml.types.IType;
+import ummisco.gama.dev.utils.DEBUG;
 
 /**
  *
@@ -140,6 +144,7 @@ public class SobolExploration extends AExplorationAlgorithm {
 	@SuppressWarnings ("unchecked")
 	@Override
 	public void explore(final IScope scope) {
+		System.out.println("This gets executed at line 143 of SobolExploration.java found in msi.kernel.batch.exploration.sobol");
 		List<ParametersSet> solutions =
 				this.solutions == null ? buildParameterSets(scope, new ArrayList<>(), 0) : this.solutions;
 		if (solutions.size() != _sample) {
@@ -151,11 +156,54 @@ public class SobolExploration extends AExplorationAlgorithm {
 		// TODO : why doesnt it take into account the value of 'keep_simulations:' ?
 		currentExperiment.setKeepSimulations(false);
 		if (GamaExecutorService.shouldRunAllSimulationsInParallel(currentExperiment)) {
+			System.out.println("Executing at line 155 of SobolExploration.java");
 			res_outputs = currentExperiment.launchSimulationsWithSolution(solutions);
 		} else {
 			res_outputs = GamaMapFactory.create();
+			
+			Map<String, Object> tracker = new HashMap<String,Object>();
+			Map<String, List<Object>> res_tracker = new HashMap<String, List<Object>>();
+			
 			for (ParametersSet sol : solutions) {
-				res_outputs.put(sol, currentExperiment.launchSimulationsWithSolution(sol));
+				//Idea: I need a tracker that will remember the parameters that I already logged. The tracker will be a map of parameter key and the value
+				//      At first the tracker doesn't have anything, so at first logging of parameters, everything will be logged. 
+				//		For the succeeding steps, the tracker will be used to check if the parameter has changed and if needs to be updated/changed
+				//		I will log only those that changed the value
+				for (String s: sol.getKeys()) {
+					if(tracker.containsKey(s)) {	//param is already in the tracker, check if the stored value is equal to the current value if not save it and then log
+						if(!tracker.get(s).equals(sol.get(s))) {
+							System.out.println("Changing tracker value: "+s+" => prev: "+tracker.get(s).toString()+" now: "+sol.get(s).toString());
+							String to_save = "[Variable]"+s+".Execution_model";
+							DEBUG.ADD_LOG("0"+";"+to_save+";"+(new Timestamp(System.currentTimeMillis()))+";"+sol.get(s).toString()+";"+to_save);
+							tracker.put(s, sol.get(s)); 	//log here
+						}
+					}else {	//param not yet in the tracker, save it and then log
+						System.out.println("Adding to tracker: "+s+" = "+sol.get(s).toString());
+						String to_save = "[Variable]"+s+".Execution_model";
+						DEBUG.ADD_LOG("0"+";"+to_save+";"+(new Timestamp(System.currentTimeMillis()))+";"+sol.get(s).toString()+";"+to_save);
+						tracker.put(s, sol.get(s)); 	//log here
+					}
+				}
+				
+				Map<String, List<Object>> result = currentExperiment.launchSimulationsWithSolution(sol);
+				res_outputs.put(sol, result);
+				System.out.println("Result: "+result);
+				
+				for(String s: result.keySet()) {
+					if(res_tracker.containsKey(s)) {	//already tracked, check if the value changed otherwise do nothing
+						if(!(res_tracker.get(s)).equals(result.get(s))) {
+							System.out.println("Changing res_tracker value: "+s+" => prev: "+res_tracker.get(s).toString()+" now: "+result.get(s).toString());
+							String to_save = "[Variable]"+s+".Execution_model";
+							DEBUG.ADD_LOG("0"+";"+to_save+";"+(new Timestamp(System.currentTimeMillis()))+";"+result.get(s).toString()+";"+to_save);
+							res_tracker.put(s, result.get(s));
+						}
+					}else {	//variable not yet tracked, store 
+						System.out.println("Adding to res_tracker: "+s+" = "+result.get(s));
+						String to_save = "[Variable]"+s+".Execution_model";
+						DEBUG.ADD_LOG("0"+";"+to_save+";"+(new Timestamp(System.currentTimeMillis()))+";"+result.get(s).toString()+";"+to_save);
+						res_tracker.put(s, result.get(s));
+					}
+				}
 			}
 		}
 
@@ -182,7 +230,7 @@ public class SobolExploration extends AExplorationAlgorithm {
 		if (f.exists()) { f.delete(); }
 		sobol_analysis.saveResult(f);
 	}
-
+	
 	@SuppressWarnings ("unchecked")
 	@Override
 	public List<ParametersSet> buildParameterSets(final IScope scope, final List<ParametersSet> sets, final int index) {

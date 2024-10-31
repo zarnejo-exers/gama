@@ -290,12 +290,6 @@ public abstract class GamaExecutorService {
 	private static <A extends IShape> Boolean doStep(final IScope scope, final A[] array, final int threshold,
 			final ISpecies species) {
 		
-		//log only if species has agent instances
-		List<String> behList = species.getBehaviors().stream().map(p -> p.getName()).collect(Collectors.toList());
-		if(array.length > 0) {
-			DEBUG.LOG("ID,"+scope.getLogID()+",SPECIES_STEP,Species_Name,"+species.getName()+",Actions_List,"+species.getActionNames(scope).toString().replace(",", ";")+",Behaviours_List,"+behList.toString().replace(",", ";")+",Variables_List,"+species.getVarNames().toString().replace(",", ";")+",Agent_Count,"+array.length);
-		}
-		
 		try (final StopWatch w = GAMA.benchmark(scope, species)) {
 			int concurrency = threshold;
 			if (array.length <= threshold) { concurrency = 0; }
@@ -315,11 +309,6 @@ public abstract class GamaExecutorService {
 				default:
 					ParallelAgentRunner.step(scope, array, threshold);
 			}
-		}
-		
-		if(array.length > 0) {
-			scope.logLastVarChange(scope, "nil");
-			scope.incrementLogID();
 		}
 		
 		return true;
@@ -345,6 +334,7 @@ public abstract class GamaExecutorService {
 			final IExpression parallel) throws GamaRuntimeException {
 		int threshold = getParallelism(scope, parallel, Caller.NONE);
 		if (array.length <= threshold) { threshold = 0; }
+		System.out.println("BATCH running on line 348 of program: GamaExecutorService.java inside msi.gama.runtime.concurrent");
 		switch (threshold) {
 			case 0:
 				for (final A agent : array) {
@@ -354,7 +344,7 @@ public abstract class GamaExecutorService {
 				return;
 			// Break doesnt really make sense for parallel execution
 			case 1:
-				for (final A agent : array) { executeThreaded(() -> scope.execute(executable, (IAgent) agent, null)); }
+				for (final A agent : array) { System.out.println("BATCH running on line 358 of program: GamaExecutorService.java inside msi.gama.runtime.concurrent");  executeThreaded(() -> scope.execute(executable, (IAgent) agent, null)); }
 				return;
 			default:
 				ParallelAgentRunner.execute(scope, executable, array, threshold);
@@ -377,6 +367,7 @@ public abstract class GamaExecutorService {
 	 */
 	public static void execute(final IScope scope, final IExecutable executable, final List<? extends IAgent> list,
 			final IExpression parallel) throws GamaRuntimeException {
+		System.out.println("BATCH running on line 381 of program: GamaExecutorService.java inside msi.gama.runtime.concurrent");
 		execute(scope, executable, list.toArray(new IAgent[list.size()]), parallel);
 	}
 

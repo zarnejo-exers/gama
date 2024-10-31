@@ -78,7 +78,9 @@ public abstract class AExplorationAlgorithm extends Symbol implements IExplorati
 		});
 		if (getOutputs()!=null) {
 			exp.add(new ParameterAdapter("Outputs of interest", BatchAgent.EXPLORATION_EXPERIMENT, IType.STRING) {
-				@Override public Object value() { return getOutputs().literalValue(); }
+				@Override public Object value() { 
+					return getOutputs().literalValue(); 
+				}
 			});
 		}
 	}
@@ -86,6 +88,7 @@ public abstract class AExplorationAlgorithm extends Symbol implements IExplorati
 	@Override
 	public void run(final IScope scope) {
 		try {
+			System.out.println("BATCH running on line 93 of program: AExplorationAlgoirthm.java inside msi.gama.kernel.batch.exploration");
 			explore(scope);
 		} catch (final GamaRuntimeException e) {
 			GAMA.reportError(scope, e, false);
