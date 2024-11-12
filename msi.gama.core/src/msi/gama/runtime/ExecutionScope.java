@@ -91,9 +91,7 @@ public class ExecutionScope implements IScope {
 	private volatile FlowStatus flowStatus = FlowStatus.NORMAL;
 	
 	/** The marker  for logging*/
-	private HashMap<String,Object> temp_vars =new HashMap<String,Object>();
-	private IAgent previous_agent = null;
-	private IScope previous_scope = null;
+	private HashMap<IAgent, HashMap<String,Object>> agent_vars =new HashMap<IAgent, HashMap<String,Object>>();
 	private int LOG_ID = 0;
 	
 	/** The current symbol. */
@@ -532,13 +530,12 @@ public class ExecutionScope implements IScope {
 				b = true;
 			}
 			
-			if(!temp_vars.isEmpty()) { //Case 2 or 3: var changed, or both
-				logLastVarChange(previous_scope, log);
+			if(agent_vars.containsKey(caller) && !agent_vars.get(caller).isEmpty()) {
+				logLastVarChange(caller, exec, log);
 			}
 			
 			if(b) {	//beginning of a method
-				if(temp_vars.isEmpty()) { //Case 1: only the behavior changed, no variable change
-					
+				if(!agent_vars.containsKey(caller) || agent_vars.get(caller).isEmpty()) { //Case 1: only the behavior changed, no variable change
 					if(exec.getSimulation() != null) {
 						DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
 					}else {
@@ -547,11 +544,16 @@ public class ExecutionScope implements IScope {
 					
 				}
 				
+				HashMap<String,Object> temp_vars =new HashMap<String,Object>();
 				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
 					temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
 				}
-				previous_agent = caller;
-				previous_scope = exec;
+				
+				if(!agent_vars.containsKey(caller)) {
+					agent_vars.put(caller, temp_vars);
+				}else {
+					agent_vars.replace(caller, temp_vars);
+				}
 			}
 			
 			// Otherwise we compute the result of the statement, pushing the
@@ -587,42 +589,43 @@ public class ExecutionScope implements IScope {
 	}
 	
 	@Override
-	public void logLastVarChange(IScope exec, String fxn_log) {
+	public void logLastVarChange(IAgent caller, IScope exec, String fxn_log) {
 		
-		if(previous_agent != null) {
-			//log the variables of the recently finished method before logging the details of the
-			for(String v : temp_vars.keySet()) {
-				if(previous_agent.getDirectVarValue(exec, v)!=null && (!previous_agent.getDirectVarValue(exec, v).equals(temp_vars.get(v)))) {
-					
-					String var_val = null;
-					if(temp_vars.get(v) == null) {	//variable have, as a value, nil
-						var_val = "nil";
+		HashMap<String, Object> caller_vars = agent_vars.get(caller);
+		
+		for(String vars : caller_vars.keySet()) {
+			System.out.println("Caller vars: "+vars);
+			Object curr_value = caller.getDirectVarValue(exec, vars);
+			Object prev_value = caller_vars.get(vars);
+			String var_val = null;
+			if(curr_value==null) {
+				if(prev_value != null) {
+					var_val = "nil";
+				}
+			}else {
+				if(!(curr_value).equals(prev_value)) {	//previous != current
+					System.out.println("--NOT SAME >> previous value: "+caller_vars.get(vars));
+					System.out.println("NOT SAME >> current value: "+caller.getDirectVarValue(exec, vars)+"--");
+					if(curr_value instanceof Collection<?> && ((Collection<?>) curr_value).containsAll((Collection<?>) prev_value) && ((Collection <?>) prev_value).containsAll((Collection <?>) curr_value)) {
+						int list_size = ((Collection<?>)curr_value).size();
+						var_val = ""+(list_size+1);
+					}else if((curr_value instanceof Integer) || (curr_value instanceof Float) || (curr_value instanceof Boolean) ||(curr_value instanceof Character) || (curr_value instanceof String)) {
+						var_val = curr_value.toString();
 					}else {
-						if(temp_vars.get(v) instanceof Collection<?>){//the value is a List, store only the size of the List, value of the variable is a list 
-							int list_size = ((Collection<?>)temp_vars.get(v)).size();
-							var_val = ""+(list_size+1);
-						}else if((temp_vars.get(v) instanceof Integer) || (temp_vars.get(v) instanceof Float) || (temp_vars.get(v) instanceof Boolean) ||(temp_vars.get(v) instanceof Character) || (temp_vars.get(v) instanceof String)) {
-							var_val = temp_vars.get(v).toString();
-						}else {
-							var_val = "Complex data type";
-						}
+						var_val = "Complex data type";
 					}
-					String var_details = "[Variable]"+v + "."+previous_agent.getSpeciesName();
-					
-					//Case 3: both variable and behavior changed
-					if(exec.getSimulation() != null) {
-						DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
-					}else {
-						DEBUG.ADD_LOG("0;"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
-					}
-					//}
 				}
 			}
-			//DEBUG.LOG("ID,"+exec.getLogID()+end+(System.nanoTime()/ 1000 * 1f / 1000)+",SPECIES,"+previous_agent.getSpeciesName());
-			previous_agent = null;
+			String var_details = "[Variable]"+vars + "."+caller.getSpeciesName();
+			if(var_val != null) {
+				if(exec.getSimulation() != null) {
+					DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+				}else {
+					DEBUG.ADD_LOG("0;"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+				}
+			}
 		}
-		
-		temp_vars.clear();
+		agent_vars.remove(caller, caller_vars);
 	}
 	
 	@Override
