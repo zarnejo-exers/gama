@@ -530,18 +530,15 @@ public class ExecutionScope implements IScope {
 				b = true;
 			}
 			
-			if(agent_vars.containsKey(caller) && !agent_vars.get(caller).isEmpty()) {
+			if(agent_vars.containsKey(caller)) {
 				logLastVarChange(caller, exec, log);
 			}
 			
 			if(b) {	//beginning of a method
-				if(!agent_vars.containsKey(caller) || agent_vars.get(caller).isEmpty()) { //Case 1: only the behavior changed, no variable change
-					if(exec.getSimulation() != null) {
-						DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
-					}else {
-						DEBUG.ADD_LOG("0;"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
-					}
-					
+				if(exec.getSimulation() != null) {
+					DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
+				}else {
+					DEBUG.ADD_LOG("0;"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
 				}
 				
 				HashMap<String,Object> temp_vars =new HashMap<String,Object>();
@@ -591,28 +588,28 @@ public class ExecutionScope implements IScope {
 	@Override
 	public void logLastVarChange(IAgent caller, IScope exec, String fxn_log) {
 		
-		HashMap<String, Object> caller_vars = agent_vars.get(caller);
+		HashMap<String, Object> caller_vars = agent_vars.get(caller);	//previous values
 		
 		for(String vars : caller_vars.keySet()) {
-			System.out.println("Caller vars: "+vars);
 			Object curr_value = caller.getDirectVarValue(exec, vars);
 			Object prev_value = caller_vars.get(vars);
 			String var_val = null;
-			if(curr_value==null) {
+			if(curr_value==null || prev_value == null) {
 				if(prev_value != null) {
 					var_val = "nil";
+				}else if(curr_value != null) {
+					var_val = curr_value.toString();
 				}
 			}else {
 				if(!(curr_value).equals(prev_value)) {	//previous != current
-					System.out.println("--NOT SAME >> previous value: "+caller_vars.get(vars));
-					System.out.println("NOT SAME >> current value: "+caller.getDirectVarValue(exec, vars)+"--");
-					if(curr_value instanceof Collection<?> && ((Collection<?>) curr_value).containsAll((Collection<?>) prev_value) && ((Collection <?>) prev_value).containsAll((Collection <?>) curr_value)) {
+					if(curr_value instanceof Collection<?> && (!((Collection<?>) curr_value).containsAll((Collection<?>) prev_value) || !((Collection <?>) prev_value).containsAll((Collection <?>) curr_value))) {
 						int list_size = ((Collection<?>)curr_value).size();
 						var_val = ""+(list_size+1);
 					}else if((curr_value instanceof Integer) || (curr_value instanceof Float) || (curr_value instanceof Boolean) ||(curr_value instanceof Character) || (curr_value instanceof String)) {
 						var_val = curr_value.toString();
-					}else {
-						var_val = "Complex data type";
+					}
+					else if((curr_value.toString()).contentEquals(prev_value.toString())){
+						var_val = caller.getSpecies().getVar(vars).getType().toString();
 					}
 				}
 			}
@@ -624,8 +621,9 @@ public class ExecutionScope implements IScope {
 					DEBUG.ADD_LOG("0;"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
 				}
 			}
+			caller_vars.replace(vars, curr_value);
 		}
-		agent_vars.remove(caller, caller_vars);
+		agent_vars.replace(caller, caller_vars);
 	}
 	
 	@Override
