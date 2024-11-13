@@ -594,11 +594,9 @@ public class ExecutionScope implements IScope {
 			Object curr_value = caller.getDirectVarValue(exec, vars);
 			Object prev_value = caller_vars.get(vars);
 			String var_val = null;
-			if(curr_value==null || prev_value == null) {
+			if(curr_value==null) {
 				if(prev_value != null) {
 					var_val = "nil";
-				}else if(curr_value != null) {
-					var_val = curr_value.toString();
 				}
 			}else {
 				if(!(curr_value).equals(prev_value)) {	//previous != current
@@ -608,8 +606,8 @@ public class ExecutionScope implements IScope {
 					}else if((curr_value instanceof Integer) || (curr_value instanceof Float) || (curr_value instanceof Boolean) ||(curr_value instanceof Character) || (curr_value instanceof String)) {
 						var_val = curr_value.toString();
 					}
-					else if((curr_value.toString()).contentEquals(prev_value.toString())){
-						var_val = caller.getSpecies().getVar(vars).getType().toString();
+					else if((prev_value == null && curr_value != null) || (curr_value.toString()).contentEquals(prev_value.toString())){
+						var_val = "Complex data type";
 					}
 				}
 			}
