@@ -509,53 +509,11 @@ public class ExecutionScope implements IScope {
 		try (StopWatch w = GAMA.benchmark(this, statement)) {
 			IScope exec = useTargetScopeForExecution ? target.getScope() : ExecutionScope.this; 
 			
-			/*
-			 * NOTE: 
-			 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
-			 * but the succeeding lines need no longer be filtered because it has already been considered 
-			 * However, it can still be useful because here it can be checked which lines get executed and which does not
-			 * LOG before execution 
-			 */
-			String log = "nil";
-			Boolean b = false;
-			if(target.getSpecies().getBehaviors().contains(statement)) {
-				Collection<IStatement> beh = target.getSpecies().getBehaviors();
-				IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				log = "[behavior]"+s.getName()+"."+target.getSpeciesName();	//activity: log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
-				b = true;
-			}else if(target.getSpecies().getActions().contains(statement)) {
-				Collection<ActionStatement> ceh = target.getSpecies().getActions();
-				ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
-				log = "[action]"+c.getName()+"."+target.getSpeciesName();	//activity: log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
-				b = true;
-			}
-			
-			if(agent_vars.containsKey(caller)) {
-				logLastVarChange(caller, exec, log);
-			}
-			
-			if(b) {	//beginning of a method
-				if(exec.getSimulation() != null) {
-					DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
-				}else {
-					DEBUG.ADD_LOG("0;"+log+";"+(new Timestamp(System.currentTimeMillis()))+";nil;nil");
-				}
-				
-				HashMap<String,Object> temp_vars =new HashMap<String,Object>();
-				for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
-					temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
-				}
-				
-				if(!agent_vars.containsKey(caller)) {
-					agent_vars.put(caller, temp_vars);
-				}else {
-					agent_vars.replace(caller, temp_vars);
-				}
-			}
-			
 			// Otherwise we compute the result of the statement, pushing the
 			// arguments if the statement expects them
-			if (args != null) { args.setCaller(caller); }
+			if (args != null) {
+				args.setCaller(caller); 				
+			}
 			// See issue #2815: we also push args even if they are null
 			statement.setRuntimeArgs(this, args);
 			
@@ -571,7 +529,57 @@ public class ExecutionScope implements IScope {
 			
 			// We push the caller to the remote sequence (will be cleaned when the remote
 			// sequence leaves its scope)
-			return withValue(statement.executeOn(exec));
+			
+			ExecutionResult r = withValue(statement.executeOn(exec));
+			
+			if(r.getValue() != null) {	//checks first if the statement returned a value, meaning it was successfully executed.
+				/*
+				 * NOTE: 
+				 * This section receives each line of the statement, so the first line gets correctly filtered as either behavior or action
+				 * but the succeeding lines need no longer be filtered because it has already been considered 
+				 * However, it can still be useful because here it can be checked which lines get executed and which does not
+				 * LOG before execution 
+				 */
+				String log = "nil";
+				Boolean b = false;
+
+				if(target.getSpecies().getBehaviors().contains(statement)) {
+					Collection<IStatement> beh = target.getSpecies().getBehaviors();
+					IStatement s = beh.stream().filter(x -> x.equals(statement)).findFirst().get();
+					log = "[behavior]"+s.getName()+"."+target.getSpeciesName();	//activity: log = "Type,"+s.getKeyword()+",Method_Name,"+s.getName();
+					b = true;
+				}else if(target.getSpecies().getActions().contains(statement)) {
+					Collection<ActionStatement> ceh = target.getSpecies().getActions();
+					ActionStatement c = ceh.stream().filter(x -> x.equals(statement)).findFirst().get();
+					log = "[action]"+c.getName()+"."+target.getSpeciesName();	//activity: log = "Type,"+c.getKeyword()+",Method_Name,"+c.getName();
+					b = true;
+				}
+				
+				if(agent_vars.containsKey(caller)) {
+					logLastVarChange(target, caller, exec, log);
+				}
+				
+				if(b) {	//beginning of a method
+					if(target.getSpecies().getDescription().isModel() || target.getSpecies().getDescription().isExperiment()) {
+						DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle())+";"+log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";nil;nil");
+					}else {
+						DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle()+1)+";"+log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";nil;nil");
+					}
+					
+					HashMap<String,Object> temp_vars =new HashMap<String,Object>();
+					for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
+						temp_vars.put(v.getName(), caller.getDirectVarValue(exec, v.getName()));	//<Variable_name, Variable_value>
+					}
+					
+					if(!agent_vars.containsKey(caller)) {
+						agent_vars.put(caller, temp_vars);
+					}else {
+						agent_vars.replace(caller, temp_vars);
+					}
+				}
+			}
+			
+			return r;
 		} catch (final GamaRuntimeException g) {
 			GAMA.reportAndThrowIfNeeded(this, g, true);
 			return ExecutionResult.FAILED;
@@ -586,7 +594,7 @@ public class ExecutionScope implements IScope {
 	}
 	
 	@Override
-	public void logLastVarChange(IAgent caller, IScope exec, String fxn_log) {
+	public void logLastVarChange(IAgent target, IAgent caller, IScope exec, String fxn_log) {
 		
 		HashMap<String, Object> caller_vars = agent_vars.get(caller);	//previous values
 		
@@ -613,10 +621,10 @@ public class ExecutionScope implements IScope {
 			}
 			String var_details = "[Variable]"+vars + "."+caller.getSpeciesName();
 			if(var_val != null) {
-				if(exec.getSimulation() != null) {
-					DEBUG.ADD_LOG((exec.getSimulation().getCycle(exec))+";"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+				if(target.getSpecies().getDescription().isModel() || target.getSpecies().getDescription().isExperiment()){
+					DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle())+";"+fxn_log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
 				}else {
-					DEBUG.ADD_LOG("0;"+fxn_log+";"+(new Timestamp(System.currentTimeMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+					DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle()+1)+";"+fxn_log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
 				}
 			}
 			caller_vars.replace(vars, curr_value);

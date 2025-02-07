@@ -424,7 +424,7 @@ public class DEBUG {
 	public static void SAVE_LOG() {
 		try {
 			System.out.println("Writing here test");
-			fileName = "/Users/admin/Desktop/updated_visualizatoin/viz/separate_act_"+file_number+".csv";
+			fileName = "/Users/admin/Desktop/MABS/trial/luneray_"+file_number+".csv";
 			DEBUG.writeRecord(new String[] {"case_id", "activity", "time_stamp", "value", "resource"}, false);
 			for(String[] s : DEBUG.ACT_LINES) {
 				DEBUG.writeRecord(s, false);
