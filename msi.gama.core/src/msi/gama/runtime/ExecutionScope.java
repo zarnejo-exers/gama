@@ -560,11 +560,13 @@ public class ExecutionScope implements IScope {
 				}
 				
 				if(b) {	//beginning of a method
+					int cycle_step = exec.getSimulation().getClock().getCycle();
 					if(target.getSpecies().getDescription().isModel() || target.getSpecies().getDescription().isExperiment()) {
-						DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle())+";"+log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";nil;nil");
+						DEBUG.ADD_LOG(DEBUG.GET_FNUMBER()+";"+log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()+cycle_step))+";nil;nil");
 					}else {
-						DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle()+1)+";"+log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";nil;nil");
-					}
+						
+						DEBUG.ADD_LOG(DEBUG.GET_FNUMBER()+";"+log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()+cycle_step+1))+";nil;nil");
+					}					
 					
 					HashMap<String,Object> temp_vars =new HashMap<String,Object>();
 					for(IVariable v : caller.getSpecies().getVars()) {								//remember the initial values of the variable
@@ -621,10 +623,12 @@ public class ExecutionScope implements IScope {
 			}
 			String var_details = "[Variable]"+vars + "."+caller.getSpeciesName();
 			if(var_val != null) {
+				int cycle_step = exec.getSimulation().getClock().getCycle();
+
 				if(target.getSpecies().getDescription().isModel() || target.getSpecies().getDescription().isExperiment()){
-					DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle())+";"+fxn_log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+					DEBUG.ADD_LOG(DEBUG.GET_FNUMBER()+";"+fxn_log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()+cycle_step))+";"+var_val+";"+var_details);	//previous_agent.getName()
 				}else {
-					DEBUG.ADD_LOG((exec.getSimulation().getClock().getCycle()+1)+";"+fxn_log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()))+";"+var_val+";"+var_details);	//previous_agent.getName()
+					DEBUG.ADD_LOG(DEBUG.GET_FNUMBER()+";"+fxn_log+";"+(new Timestamp(exec.getSimulation().getClock().getStepInMillis()+cycle_step+1))+";"+var_val+";"+var_details);	//previous_agent.getName()
 				}
 			}
 			caller_vars.replace(vars, curr_value);

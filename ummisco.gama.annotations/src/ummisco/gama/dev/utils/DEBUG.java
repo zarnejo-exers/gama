@@ -408,6 +408,10 @@ public class DEBUG {
 	 * Changes in the code starts here
 	 */
 	
+	public static int GET_FNUMBER(){
+		return file_number;
+	}
+	
 	public static void ADD_LOG(final Object string) {
 		if(ENABLE_LOGGING) {
 			DEBUG.ACT_LINES.add(new String[] {STRINGS.TO_STRING(string)});
